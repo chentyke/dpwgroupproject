@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+*.pyc
+
+data/processed/*
+!data/processed/.gitkeep
+
+web/.next/
+web/node_modules/
+web/.env.local
