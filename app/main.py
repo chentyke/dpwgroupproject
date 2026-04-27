@@ -1,5 +1,8 @@
 from __future__ import annotations
+import sys
+from pathlib import Path
 
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -28,3 +31,11 @@ app.include_router(api_router, prefix=settings.api_prefix)
 @app.get("/health")
 def healthcheck() -> dict[str, str]:
     return {"status": "ok", "mode": "scaffold"}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True
+    )

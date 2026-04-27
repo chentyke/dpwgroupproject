@@ -103,6 +103,10 @@ class PlayerRepository:
                         key: self._normalize_value(key, row.get(key))
                         for key in PROJECT_FIELDS
                     }
+                    if normalized.get("player_positions"):
+                        normalized["main_position"] = normalized["player_positions"].split(",")[0]
+                    if normalized.get("age") is None:
+                        normalized["age"] = 0
                     normalized["season"] = season
                     normalized["gender"] = gender
                     players.append(normalized)
@@ -191,6 +195,41 @@ class PlayerRepository:
 
     def summary_snapshot(self) -> dict[str, Any]:
         return self._summary_snapshot
+
+    def run_etl(self) -> dict[str, Any]:
+        import pandas as pd
+        import json
+        from pathlib import Path
+
+        output_path = Path("data/processed/players_tidy.parquet")
+        report_path = Path("data/processed/cleaning_report.json")
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        players = self.load_players()
+        df = pd.DataFrame(players)
+
+
+        report = {
+             "missing_before": df.isnull().sum().to_dict()
+        }
+
+
+        df = df.dropna()
+
+        report["missing_after"] = df.isnull().sum().to_dict()
+        report["final_shape"] = df.shape
+
+        df.to_parquet(output_path, index=False)
+
+        with report_path.open("w", encoding="utf-8") as f:
+             json.dump(report, f, indent=4)
+
+        return {
+              "rows": df.shape[0],
+              "cols": df.shape[1],
+              "output": str(output_path)
+        }
 
 
 @lru_cache
