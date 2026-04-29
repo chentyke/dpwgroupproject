@@ -44,7 +44,6 @@ POSITION_COLUMNS = [
 
 
 def build_dataset_summary(repository: PlayerRepository) -> DatasetSummary:
-    repository.run_etl()
     snapshot = repository.summary_snapshot()
     column_names = list(snapshot["fieldnames"])
     preview = snapshot["preview"]
@@ -65,20 +64,6 @@ def build_dataset_summary(repository: PlayerRepository) -> DatasetSummary:
                 null_count=null_count,
             )
         )
-
-    import json
-    from pathlib import Path
-
-    output_path = Path("data/processed/summary.json")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump({
-            "total_rows": int(snapshot["total_rows"]),
-            "total_columns": len(column_names),
-            "seasons": list(snapshot["seasons"]),
-            "genders": list(snapshot["genders"])
-        }, f, ensure_ascii=False, indent=2)
 
     return DatasetSummary(
         source=repository.source_name(),

@@ -198,37 +198,41 @@ class PlayerRepository:
 
     def run_etl(self) -> dict[str, Any]:
         import pandas as pd
-        import json
-        from pathlib import Path
 
-        output_path = Path("data/processed/players_tidy.parquet")
-        report_path = Path("data/processed/cleaning_report.json")
+        settings = get_settings()
+        output_path = settings.tidy_cache_path
+        report_path = output_path.with_name("cleaning_report.json")
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         players = self.load_players()
         df = pd.DataFrame(players)
 
-
         report = {
-             "missing_before": df.isnull().sum().to_dict()
+            "missing_before": {
+                str(column): int(count)
+                for column, count in df.isna().sum().items()
+            },
+            "rows_before": int(df.shape[0]),
         }
 
-
-        df = df.dropna()
-
-        report["missing_after"] = df.isnull().sum().to_dict()
-        report["final_shape"] = df.shape
+        report["missing_after"] = {
+            str(column): int(count)
+            for column, count in df.isna().sum().items()
+        }
+        report["rows_dropped"] = 0
+        report["final_shape"] = [int(df.shape[0]), int(df.shape[1])]
 
         df.to_parquet(output_path, index=False)
 
         with report_path.open("w", encoding="utf-8") as f:
-             json.dump(report, f, indent=4)
+            json.dump(report, f, indent=4)
 
         return {
-              "rows": df.shape[0],
-              "cols": df.shape[1],
-              "output": str(output_path)
+            "rows": int(df.shape[0]),
+            "cols": int(df.shape[1]),
+            "output": str(output_path),
+            "report": str(report_path),
         }
 
 
