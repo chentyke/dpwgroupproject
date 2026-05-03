@@ -11,6 +11,12 @@ from app.schemas.advanced import (
 )
 from app.services.data_repository import PlayerRepository
 
+CLUSTER_FEATURES = ("pace", "passing", "defending", "shooting", "dribbling")
+
+
+def _has_cluster_features(player: dict[str, object]) -> bool:
+    return all(player.get(feature) is not None for feature in CLUSTER_FEATURES)
+
 
 def _cluster_label(player: dict[str, object]) -> str:
     pace = int(player["pace"])
@@ -28,7 +34,11 @@ def _cluster_label(player: dict[str, object]) -> str:
 
 
 def build_cluster_response(repository: PlayerRepository, k: int = 4) -> ClusterResponse:
-    players = repository.load_players()
+    players = [
+        player
+        for player in repository.load_players()
+        if _has_cluster_features(player)
+    ]
     points: list[ClusterPoint] = []
     labels = []
 
@@ -63,6 +73,7 @@ def build_cluster_response(repository: PlayerRepository, k: int = 4) -> ClusterR
         summaries=summaries,
         notes=[
             "This endpoint currently preserves the intended payload shape, not the final ML behaviour.",
+            "Rows without outfield aggregate ratings are excluded from the scaffold heuristic.",
             "The meeting note assigns the real clustering implementation to the advanced-task owner.",
         ],
     )
@@ -85,7 +96,9 @@ def build_prediction_response(
         + passing * 0.15
     )
     age_penalty = max(age - 24, 0) * 0.8
-    estimated_value = int(max((weighted_score - age_penalty) * 1_100_000 + wage_eur * 18, 500_000))
+    estimated_value = int(
+        max((weighted_score - age_penalty) * 1_100_000 + wage_eur * 18, 500_000)
+    )
 
     return PredictionResponse(
         estimated_value_eur=estimated_value,
@@ -102,4 +115,3 @@ def build_prediction_response(
             "Replace with a trained regression model plus held-out metrics in Week 3.",
         ],
     )
-

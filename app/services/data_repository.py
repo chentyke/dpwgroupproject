@@ -31,6 +31,12 @@ INT_FIELDS = {
     "dribbling",
     "defending",
     "physic",
+    "goalkeeping_diving",
+    "goalkeeping_handling",
+    "goalkeeping_kicking",
+    "goalkeeping_positioning",
+    "goalkeeping_reflexes",
+    "goalkeeping_speed",
 }
 FLOAT_TO_INT_FIELDS = {
     "value_eur",
@@ -55,6 +61,12 @@ PROJECT_FIELDS = {
     "dribbling",
     "defending",
     "physic",
+    "goalkeeping_diving",
+    "goalkeeping_handling",
+    "goalkeeping_kicking",
+    "goalkeeping_positioning",
+    "goalkeeping_reflexes",
+    "goalkeeping_speed",
 }
 PREVIEW_FIELDS = [
     "sofifa_id",
