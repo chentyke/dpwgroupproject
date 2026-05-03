@@ -1,0 +1,15 @@
+source_file,dataset_gender,fifa_version,rows,value_eur_non_missing,value_eur_positive,wage_eur_non_missing,wage_eur_positive,cost_eligible_rows,cost_eligible_pct
+players_16.csv,male,16,15623,15390,15390,15460,15460,15390,98.51
+players_17.csv,male,17,17596,17286,17286,17372,17372,17286,98.24
+players_18.csv,male,18,17954,17713,17713,17718,17718,17713,98.66
+players_19.csv,male,19,18085,17844,17844,17851,17851,17844,98.67
+players_20.csv,male,20,18483,18233,18233,18243,18243,18233,98.65
+players_21.csv,male,21,18944,18707,18707,18719,18719,18707,98.75
+players_22.csv,male,22,19239,19165,19165,19178,19178,19165,99.62
+female_players_16.csv,female,16,248,0,0,0,0,0,0.0
+female_players_17.csv,female,17,299,0,0,0,0,0,0.0
+female_players_18.csv,female,18,317,0,0,0,0,0,0.0
+female_players_19.csv,female,19,299,0,0,0,0,0,0.0
+female_players_20.csv,female,20,345,0,0,0,0,0,0.0
+female_players_21.csv,female,21,345,0,0,0,0,0,0.0
+female_players_22.csv,female,22,391,46,46,46,46,46,11.76

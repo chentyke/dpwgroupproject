@@ -1,0 +1,22 @@
+fifa_version,season_label,cost_performance_segment,players,avg_overall,avg_potential,avg_cost_million_eur,avg_vfm_index
+16,FIFA 16,high_perf_high_cost__premium_star,3373,74.858,78.0216,8.7609,36.6877
+16,FIFA 16,low_perf_low_cost__budget_depth,3372,56.1862,63.1759,0.2518,39.4868
+16,FIFA 16,mid_market,8645,65.3447,69.7042,1.0699,59.3005
+17,FIFA 17,high_perf_high_cost__premium_star,3813,75.3315,78.4262,8.5992,41.6634
+17,FIFA 17,low_perf_low_cost__budget_depth,3748,56.7014,64.3727,0.2323,43.7672
+17,FIFA 17,mid_market,9725,66.0407,70.4515,1.0911,55.6759
+18,FIFA 18,high_perf_high_cost__premium_star,3890,75.2792,78.3748,10.297,39.3649
+18,FIFA 18,low_perf_low_cost__budget_depth,3824,57.1661,65.0669,0.2431,44.1261
+18,FIFA 18,mid_market,9999,66.1609,70.7501,1.21,56.3889
+19,FIFA 19,high_perf_high_cost__premium_star,3892,75.3258,78.5424,10.3622,37.9731
+19,FIFA 19,low_perf_low_cost__budget_depth,3827,57.161,65.2198,0.2339,42.8279
+19,FIFA 19,mid_market,10125,65.9726,70.7791,1.1109,57.3389
+20,FIFA 20,high_perf_high_cost__premium_star,3978,75.3024,78.6559,10.5752,39.1019
+20,FIFA 20,low_perf_low_cost__budget_depth,3954,57.414,65.5296,0.2348,43.7249
+20,FIFA 20,mid_market,10301,65.9859,71.0508,1.1397,56.6221
+21,FIFA 21,high_perf_high_cost__premium_star,4269,74.4308,78.3186,11.3872,45.1706
+21,FIFA 21,low_perf_low_cost__budget_depth,4186,57.1529,65.0471,0.3357,37.6687
+21,FIFA 21,mid_market,10252,65.4348,70.5523,1.2855,57.0509
+22,FIFA 22,high_perf_high_cost__premium_star,4382,74.3631,78.2444,11.1103,44.8053
+22,FIFA 22,low_perf_low_cost__budget_depth,4276,57.4434,64.9984,0.3425,38.3955
+22,FIFA 22,mid_market,10553,65.5858,70.5936,1.2973,56.8638
