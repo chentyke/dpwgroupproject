@@ -1,0 +1,50 @@
+{
+    "missing_before": {
+        "defending": 16074,
+        "sofifa_id": 0,
+        "dribbling": 16074,
+        "potential": 0,
+        "nationality_name": 0,
+        "wage_eur": 3820,
+        "overall": 0,
+        "pace": 16074,
+        "player_positions": 0,
+        "physic": 16074,
+        "value_eur": 4095,
+        "shooting": 16074,
+        "passing": 16074,
+        "club_name": 3874,
+        "age": 0,
+        "short_name": 0,
+        "league_name": 3874,
+        "main_position": 0,
+        "season": 0,
+        "gender": 0
+    },
+    "missing_after": {
+        "defending": 0,
+        "sofifa_id": 0,
+        "dribbling": 0,
+        "potential": 0,
+        "nationality_name": 0,
+        "wage_eur": 0,
+        "overall": 0,
+        "pace": 0,
+        "player_positions": 0,
+        "physic": 0,
+        "value_eur": 0,
+        "shooting": 0,
+        "passing": 0,
+        "club_name": 0,
+        "age": 0,
+        "short_name": 0,
+        "league_name": 0,
+        "main_position": 0,
+        "season": 0,
+        "gender": 0
+    },
+    "final_shape": [
+        124631,
+        20
+    ]
+}

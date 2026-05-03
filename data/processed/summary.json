@@ -1,0 +1,18 @@
+{
+  "total_rows": 144323,
+  "total_columns": 110,
+  "seasons": [
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22
+  ],
+  "genders": [
+    "female",
+    "male"
+  ]
+}
