@@ -14,8 +14,11 @@ const samplePredictionPayload = {
   age: 21,
   wage_eur: 85000,
   pace: 84,
+  shooting: 78,
   dribbling: 91,
   passing: 82,
+  defending: 57,
+  physic: 64,
 };
 
 export default async function AdvancedPage({
@@ -85,12 +88,34 @@ export default async function AdvancedPage({
               {prediction.notes.join(" ")}
             </p>
           </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-[var(--line)] bg-white/60 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] muted">R2</p>
+              <p className="mt-1 text-lg font-semibold">
+                {prediction.r2_score?.toFixed(3) ?? "n/a"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] bg-white/60 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] muted">MAE</p>
+              <p className="mt-1 text-lg font-semibold">
+                {prediction.mae_eur != null
+                  ? formatCurrency(prediction.mae_eur)
+                  : "n/a"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] bg-white/60 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] muted">Test rows</p>
+              <p className="mt-1 text-lg font-semibold">
+                {prediction.test_rows ?? 0}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="surface rounded-[1.75rem] p-6">
           <div className="mb-5">
             <p className="text-sm uppercase tracking-[0.2em] muted">Feature weights</p>
-            <p className="display-font text-2xl font-semibold">Current predictor contract</p>
+            <p className="display-font text-2xl font-semibold">Ridge feature importance</p>
           </div>
           <DataTable
             columns={[

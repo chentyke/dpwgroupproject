@@ -140,10 +140,19 @@ export type FeatureContribution = {
   weight: number;
 };
 
+export type ResidualPoint = {
+  predicted_log_value: number;
+  residual: number;
+};
+
 export type PredictionResponse = {
   estimated_value_eur: number;
   band: string;
   contributions: FeatureContribution[];
+  r2_score?: number | null;
+  mae_eur?: number | null;
+  residuals?: ResidualPoint[];
+  training_rows?: number;
+  test_rows?: number;
   notes: string[];
 };
-

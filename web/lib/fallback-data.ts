@@ -230,11 +230,20 @@ export const fallbackCluster: ClusterResponse = {
 
 export const fallbackPrediction: PredictionResponse = {
   estimated_value_eur: 98000000,
-  band: "scaffold-estimate",
+  band: "ridge-log-value",
   contributions: [
-    { feature: "overall", weight: 0.35 },
-    { feature: "potential", weight: 0.25 },
-    { feature: "dribbling", weight: 0.15 },
+    { feature: "overall", weight: 0.64 },
+    { feature: "potential", weight: 0.48 },
+    { feature: "age", weight: 0.31 },
+    { feature: "dribbling", weight: 0.18 },
   ],
+  r2_score: 0.81,
+  mae_eur: 3850000,
+  residuals: [
+    { predicted_log_value: 16.12, residual: 0.18 },
+    { predicted_log_value: 15.88, residual: -0.11 },
+  ],
+  training_rows: 12800,
+  test_rows: 3200,
   notes: ["Fallback mode is active."],
 };

@@ -9,11 +9,26 @@ from app.schemas.advanced import (
     ClusterSummary,
     FeatureContribution,
     PredictionResponse,
+    ResidualPoint,
 )
 from app.services.data_repository import PlayerRepository
 
 LATEST_CLUSTER_SEASON = 22
 CLUSTER_FEATURES = ("pace", "shooting", "passing", "dribbling", "defending", "physic")
+LATEST_VALUE_SEASON = 22
+PREDICTION_FEATURES = (
+    "overall",
+    "potential",
+    "age",
+    "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physic",
+)
+RIDGE_ALPHA = 10.0
+PREDICTION_RANDOM_STATE = 42
 
 
 def _has_cluster_features(player: dict[str, object]) -> bool:
@@ -69,7 +84,7 @@ def _unique_labels(profiles: list[dict[str, float]]) -> dict[int, str]:
 def _run_kmeans_pca(rows: list[dict[str, object]], k: int) -> dict[str, Any]:
     try:
         return _run_sklearn_kmeans_pca(rows, k)
-    except ImportError:
+    except Exception:
         return _run_numpy_kmeans_pca(rows, k)
 
 
@@ -233,6 +248,290 @@ def build_cluster_response(repository: PlayerRepository, k: int = 5) -> ClusterR
 
 
 def build_prediction_response(
+    repository: PlayerRepository,
+    overall: int,
+    potential: int,
+    age: int,
+    wage_eur: int,
+    pace: int,
+    dribbling: int,
+    passing: int,
+    shooting: int | None = None,
+    defending: int | None = None,
+    physic: int | None = None,
+) -> PredictionResponse:
+    rows = [
+        player
+        for player in repository.load_players()
+        if _is_prediction_training_row(player)
+    ]
+    if len(rows) < 2:
+        return _build_scaffold_prediction_response(
+            overall=overall,
+            potential=potential,
+            age=age,
+            wage_eur=wage_eur,
+            pace=pace,
+            dribbling=dribbling,
+            passing=passing,
+        )
+
+    model = _run_value_prediction_model(rows)
+    request_values = {
+        "overall": overall,
+        "potential": potential,
+        "age": age,
+        "pace": pace,
+        "shooting": shooting,
+        "passing": passing,
+        "dribbling": dribbling,
+        "defending": defending,
+        "physic": physic,
+    }
+    predicted_log_value = _predict_log_value(model, request_values)
+
+    import numpy as np
+
+    estimated_value = int(round(max(float(np.expm1(predicted_log_value)), 0.0)))
+    missing_features = [
+        feature for feature, value in request_values.items() if value is None
+    ]
+    notes = [
+        "Ridge regression is trained on FIFA 22 outfield players and log1p(value_eur), matching the Predict value notebook.",
+        f"Features are {', '.join(PREDICTION_FEATURES)}.",
+        f"Model engine: {model['engine']}; rows used: {len(rows)}.",
+    ]
+    if missing_features:
+        notes.append(
+            "Missing request fields were filled with training feature means: "
+            + ", ".join(missing_features)
+            + "."
+        )
+    notes.append(
+        "wage_eur is accepted for backward compatibility but is not used by this notebook model."
+    )
+
+    return PredictionResponse(
+        estimated_value_eur=estimated_value,
+        band="ridge-log-value",
+        contributions=model["feature_importance"],
+        r2_score=model["r2_score"],
+        mae_eur=model["mae_eur"],
+        residuals=model["residuals"],
+        training_rows=model["training_rows"],
+        test_rows=model["test_rows"],
+        notes=notes,
+    )
+
+
+def _is_prediction_training_row(player: dict[str, object]) -> bool:
+    try:
+        return (
+            int(player.get("season", 0)) == LATEST_VALUE_SEASON
+            and str(player.get("main_position") or "").upper() != "GK"
+            and int(player.get("value_eur") or 0) > 0
+            and all(player.get(feature) is not None for feature in PREDICTION_FEATURES)
+        )
+    except (TypeError, ValueError):
+        return False
+
+
+def _run_value_prediction_model(rows: list[dict[str, object]]) -> dict[str, Any]:
+    try:
+        return _run_sklearn_value_model(rows)
+    except Exception:
+        return _run_numpy_value_model(rows)
+
+
+def _prediction_arrays(rows: list[dict[str, object]]) -> tuple[Any, Any]:
+    import numpy as np
+
+    x_raw = np.array(
+        [[float(row[feature]) for feature in PREDICTION_FEATURES] for row in rows],
+        dtype=float,
+    )
+    y = np.log1p(
+        np.array([float(row["value_eur"]) for row in rows], dtype=float)
+    )
+    return x_raw, y
+
+
+def _run_sklearn_value_model(rows: list[dict[str, object]]) -> dict[str, Any]:
+    from sklearn.linear_model import Ridge
+    from sklearn.metrics import mean_absolute_error, r2_score
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    x_raw, y = _prediction_arrays(rows)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_raw,
+        y,
+        test_size=0.2,
+        random_state=PREDICTION_RANDOM_STATE,
+    )
+
+    scaler = StandardScaler()
+    x_train_scaled = scaler.fit_transform(x_train)
+    x_test_scaled = scaler.transform(x_test)
+
+    ridge_model = Ridge(alpha=RIDGE_ALPHA, random_state=PREDICTION_RANDOM_STATE)
+    ridge_model.fit(x_train_scaled, y_train)
+
+    y_pred = ridge_model.predict(x_test_scaled)
+    return _package_value_model_result(
+        engine="sklearn",
+        feature_means=scaler.mean_,
+        feature_scales=scaler.scale_,
+        coefficients=ridge_model.coef_,
+        intercept=float(ridge_model.intercept_),
+        y_test=y_test,
+        y_pred=y_pred,
+        r2_score_value=float(r2_score(y_test, y_pred)),
+        mae_eur_value=float(
+            mean_absolute_error(_expm1_values(y_test), _expm1_values(y_pred))
+        ),
+        training_rows=len(x_train),
+        test_rows=len(x_test),
+    )
+
+
+def _run_numpy_value_model(rows: list[dict[str, object]]) -> dict[str, Any]:
+    import numpy as np
+
+    x_raw, y = _prediction_arrays(rows)
+    rng = np.random.default_rng(PREDICTION_RANDOM_STATE)
+    indices = rng.permutation(len(x_raw))
+    test_size = max(1, int(round(len(x_raw) * 0.2)))
+    if test_size >= len(x_raw):
+        test_size = 1
+    test_indices = indices[:test_size]
+    train_indices = indices[test_size:]
+
+    x_train = x_raw[train_indices]
+    x_test = x_raw[test_indices]
+    y_train = y[train_indices]
+    y_test = y[test_indices]
+
+    feature_means = x_train.mean(axis=0)
+    feature_scales = x_train.std(axis=0)
+    feature_scales[feature_scales == 0] = 1.0
+    x_train_scaled = (x_train - feature_means) / feature_scales
+    x_test_scaled = (x_test - feature_means) / feature_scales
+
+    x_train_augmented = np.column_stack(
+        [np.ones(len(x_train_scaled)), x_train_scaled]
+    )
+    regularization = np.eye(x_train_augmented.shape[1]) * RIDGE_ALPHA
+    regularization[0, 0] = 0.0
+    left = x_train_augmented.T @ x_train_augmented + regularization
+    right = x_train_augmented.T @ y_train
+
+    try:
+        fitted = np.linalg.solve(left, right)
+    except np.linalg.LinAlgError:
+        fitted = np.linalg.pinv(left) @ right
+
+    intercept = float(fitted[0])
+    coefficients = fitted[1:]
+    y_pred = np.column_stack([np.ones(len(x_test_scaled)), x_test_scaled]) @ fitted
+    r2_value, mae_value = _regression_metrics(y_test, y_pred)
+
+    return _package_value_model_result(
+        engine="numpy",
+        feature_means=feature_means,
+        feature_scales=feature_scales,
+        coefficients=coefficients,
+        intercept=intercept,
+        y_test=y_test,
+        y_pred=y_pred,
+        r2_score_value=r2_value,
+        mae_eur_value=mae_value,
+        training_rows=len(x_train),
+        test_rows=len(x_test),
+    )
+
+
+def _package_value_model_result(
+    *,
+    engine: str,
+    feature_means: Any,
+    feature_scales: Any,
+    coefficients: Any,
+    intercept: float,
+    y_test: Any,
+    y_pred: Any,
+    r2_score_value: float,
+    mae_eur_value: float,
+    training_rows: int,
+    test_rows: int,
+) -> dict[str, Any]:
+    import numpy as np
+
+    sorted_importance = sorted(
+        zip(PREDICTION_FEATURES, np.abs(coefficients), strict=True),
+        key=lambda item: float(item[1]),
+        reverse=True,
+    )
+    residuals = y_test - y_pred
+
+    return {
+        "engine": engine,
+        "feature_means": feature_means,
+        "feature_scales": feature_scales,
+        "coefficients": coefficients,
+        "intercept": intercept,
+        "r2_score": round(float(r2_score_value), 3),
+        "mae_eur": round(float(mae_eur_value), 2),
+        "feature_importance": [
+            FeatureContribution(feature=feature, weight=round(float(weight), 3))
+            for feature, weight in sorted_importance
+        ],
+        "residuals": [
+            ResidualPoint(
+                predicted_log_value=round(float(predicted), 3),
+                residual=round(float(residual), 3),
+            )
+            for predicted, residual in list(zip(y_pred, residuals, strict=True))[:1000]
+        ],
+        "training_rows": training_rows,
+        "test_rows": test_rows,
+    }
+
+
+def _predict_log_value(model: dict[str, Any], values: dict[str, int | None]) -> float:
+    import numpy as np
+
+    sample = np.array(
+        [
+            float(values[feature])
+            if values[feature] is not None
+            else float(model["feature_means"][index])
+            for index, feature in enumerate(PREDICTION_FEATURES)
+        ],
+        dtype=float,
+    )
+    sample_scaled = (sample - model["feature_means"]) / model["feature_scales"]
+    return float(model["intercept"] + sample_scaled @ model["coefficients"])
+
+
+def _regression_metrics(y_test: Any, y_pred: Any) -> tuple[float, float]:
+    import numpy as np
+
+    residual_sum = float(((y_test - y_pred) ** 2).sum())
+    total_sum = float(((y_test - y_test.mean()) ** 2).sum())
+    r2_value = 0.0 if total_sum == 0 else 1.0 - residual_sum / total_sum
+    mae_value = float(np.mean(np.abs(_expm1_values(y_test) - _expm1_values(y_pred))))
+    return r2_value, mae_value
+
+
+def _expm1_values(values: Any) -> Any:
+    import numpy as np
+
+    return np.expm1(values)
+
+
+def _build_scaffold_prediction_response(
+    *,
     overall: int,
     potential: int,
     age: int,
@@ -264,7 +563,7 @@ def build_prediction_response(
             FeatureContribution(feature="pace", weight=0.1),
         ],
         notes=[
-            "This prediction is a deterministic scaffold heuristic.",
-            "Replace with a trained regression model plus held-out metrics in Week 3.",
+            "Insufficient valid training rows were available for the Ridge model.",
+            "This response falls back to the deterministic scaffold heuristic.",
         ],
     )

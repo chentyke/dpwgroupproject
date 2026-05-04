@@ -21,15 +21,19 @@ def post_cluster(payload: ClusterRequest) -> ApiResponse[ClusterResponse]:
 
 @router.post("/predict", response_model=ApiResponse[PredictionResponse])
 def post_predict(payload: PredictRequest) -> ApiResponse[PredictionResponse]:
+    repository = get_player_repository()
     return ApiResponse(
         data=build_prediction_response(
+            repository,
             overall=payload.overall,
             potential=payload.potential,
             age=payload.age,
             wage_eur=payload.wage_eur,
             pace=payload.pace,
+            shooting=payload.shooting,
             dribbling=payload.dribbling,
             passing=payload.passing,
+            defending=payload.defending,
+            physic=payload.physic,
         )
     )
-
