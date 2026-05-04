@@ -24,7 +24,7 @@ export default async function AdvancedPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const k = Number(Array.isArray(params.k) ? params.k[0] : params.k ?? "4");
+  const k = Number(Array.isArray(params.k) ? params.k[0] : params.k ?? "5");
 
   const [cluster, prediction] = await Promise.all([
     postApi<{ k: number }, ClusterResponse>(
@@ -43,9 +43,9 @@ export default async function AdvancedPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Usage Scenario 4"
-        title="Advanced analysis scaffold"
-        description="The advanced route keeps room for K-Means clustering and value prediction while still giving the team a live page for integration, payload review, and presentation rehearsals."
-        aside="Right now the math is heuristic. The important part is that the route structure and UI shape match the SDS."
+        title="Advanced analysis"
+        description="This page runs K-Means over latest-season outfield player ability profiles and projects the result to two dimensions with PCA."
+        aside="The clustering uses pace, shooting, passing, dribbling, defending, and physic."
       />
 
       <section className="surface rounded-[1.75rem] p-6">

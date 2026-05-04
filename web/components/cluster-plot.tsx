@@ -5,18 +5,13 @@ type ClusterPlotProps = {
   summaries: ClusterSummary[];
 };
 
-const COLORS: Record<string, string> = {
-  "Creative Link": "#126b4e",
-  "Direct Threat": "#c06128",
-  "Control Anchor": "#2456a3",
-  "Balanced Engine": "#7e6a2f",
-};
+const PALETTE = ["#126b4e", "#c06128", "#2456a3", "#7e6a2f", "#8a4d76", "#3f7f88"];
 
 export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
   if (points.length === 0) {
     return (
       <div className="surface rounded-[1.5rem] p-5">
-        <p className="display-font text-xl font-semibold">Heuristic 2-D map</p>
+        <p className="display-font text-xl font-semibold">K-Means PCA map</p>
         <p className="mt-3 text-sm muted">
           No cluster points are available for the current input.
         </p>
@@ -29,6 +24,9 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
   const padding = 36;
   const xValues = points.map((point) => point.x);
   const yValues = points.map((point) => point.y);
+  const labelColors = Object.fromEntries(
+    summaries.map((summary, index) => [summary.label, PALETTE[index % PALETTE.length]]),
+  );
 
   const scaleX = (value: number) =>
     padding +
@@ -45,7 +43,7 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
       <div className="surface rounded-[1.5rem] p-5">
         <div className="mb-4">
           <p className="text-sm uppercase tracking-[0.2em] muted">Cluster projection</p>
-          <p className="display-font text-xl font-semibold">Heuristic 2-D map</p>
+          <p className="display-font text-xl font-semibold">K-Means PCA map</p>
         </div>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
           <line
@@ -62,13 +60,13 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
             y2={height - padding}
             stroke="rgba(24, 48, 39, 0.2)"
           />
-          {points.map((point) => (
-            <g key={point.short_name}>
+          {points.map((point, index) => (
+            <g key={`${point.short_name}-${index}`}>
               <circle
                 cx={scaleX(point.x)}
                 cy={scaleY(point.y)}
                 r={5}
-                fill={COLORS[point.label] ?? "#126b4e"}
+                fill={labelColors[point.label] ?? PALETTE[0]}
               />
             </g>
           ))}
