@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class ClusterRequest(BaseModel):
-    k: int = Field(default=4, ge=2, le=6)
+    k: int = Field(default=5, ge=2, le=6)
 
 
 class ClusterPoint(BaseModel):
@@ -48,4 +48,3 @@ class PredictionResponse(BaseModel):
     band: str
     contributions: list[FeatureContribution]
     notes: list[str]
-

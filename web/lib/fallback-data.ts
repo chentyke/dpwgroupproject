@@ -206,23 +206,23 @@ export const fallbackHeatmap: NationalityHeatmapResponse = {
 };
 
 export const fallbackCluster: ClusterResponse = {
-  k: 4,
+  k: 5,
   points: [
-    { short_name: "Rodri", label: "Control Anchor", x: -1.9, y: 8.15, season: 22 },
-    { short_name: "Bernardo Silva", label: "Creative Link", x: 1.33, y: 8.95, season: 22 },
-    { short_name: "K. Mbappe", label: "Direct Threat", x: 5.08, y: 8.6, season: 22 },
-    { short_name: "Pedri", label: "Balanced Engine", x: 0.83, y: 8.35, season: 22 },
+    { short_name: "K. Mbappe", label: "Pacey Attackers", x: 2.44, y: 1.31, season: 22 },
+    { short_name: "Ruben Dias", label: "Traditional Defenders", x: -1.92, y: 0.87, season: 22 },
+    { short_name: "Pedri", label: "All-Rounders", x: 0.44, y: -0.38, season: 22 },
+    { short_name: "F. Wirtz", label: "Lightweight Attackers", x: 1.38, y: -1.1, season: 22 },
   ],
   summaries: [
     {
-      label: "Creative Link",
-      count: 2,
-      description: "High passing and dribbling profile.",
+      label: "Pacey Attackers",
+      count: 1,
+      description: "pace: 84.0, shooting: 76.0, passing: 70.0, dribbling: 79.0, defending: 38.0, physic: 68.0",
     },
     {
-      label: "Direct Threat",
-      count: 2,
-      description: "Pace-forward shot creators and finishers.",
+      label: "Traditional Defenders",
+      count: 1,
+      description: "pace: 62.0, shooting: 45.0, passing: 63.0, dribbling: 61.0, defending: 82.0, physic: 81.0",
     },
   ],
   notes: ["Fallback mode is active."],
