@@ -1,3 +1,5 @@
+import { Chip } from "@heroui/react";
+
 type PageHeaderProps = {
   eyebrow: string;
   title: string;
@@ -12,19 +14,21 @@ export function PageHeader({
   aside,
 }: PageHeaderProps) {
   return (
-    <section className="surface-strong rounded-[2rem] p-6 md:p-8">
-      <div className="grid gap-6 md:grid-cols-[1.35fr_0.65fr] md:items-end">
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">
+    <section className="border-b border-border pb-5">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)] xl:items-end">
+        <div className="flex flex-col gap-3">
+          <Chip className="w-fit border border-primary/20 bg-primary/10 text-primary">
             {eyebrow}
-          </p>
-          <h1 className="display-font text-3xl font-bold tracking-tight md:text-5xl">
+          </Chip>
+          <h1 className="max-w-5xl text-3xl font-semibold tracking-tight md:text-4xl">
             {title}
           </h1>
-          <p className="max-w-3xl text-base leading-7 muted">{description}</p>
+          <p className="max-w-4xl text-base leading-7 text-muted-foreground">
+            {description}
+          </p>
         </div>
         {aside ? (
-          <div className="rounded-[1.5rem] border border-[var(--line)] bg-white/60 p-4 text-sm leading-6 text-[var(--ink)]">
+          <div className="rounded-lg border border-border bg-muted p-4 text-sm leading-6 text-foreground">
             {aside}
           </div>
         ) : null}
@@ -32,4 +36,3 @@ export function PageHeader({
     </section>
   );
 }
-

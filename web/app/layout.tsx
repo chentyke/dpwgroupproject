@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { SiteShell } from "@/components/site-shell";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const bodyFont = IBM_Plex_Sans({
@@ -9,15 +10,15 @@ const bodyFont = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const displayFont = Space_Grotesk({
+const displayFont = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "700"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "FIFA Player Data Analysis System",
-  description: "Week 1 scaffold for the Software Development Workshop II group project",
+  description: "Interactive FIFA player exploration, value, fairness, and modelling dashboards.",
 };
 
 export default function RootLayout({
@@ -26,9 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" data-theme="light">
       <body className={`${bodyFont.variable} ${displayFont.variable}`}>
-        <SiteShell>{children}</SiteShell>
+        <TooltipProvider>
+          <SiteShell>{children}</SiteShell>
+        </TooltipProvider>
       </body>
     </html>
   );

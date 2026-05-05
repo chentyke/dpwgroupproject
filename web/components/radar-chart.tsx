@@ -1,111 +1,128 @@
-import { RadarMetric } from "@/lib/types";
+"use client";
+
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart as RechartsRadarChart,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import type { RadarMetric } from "@/lib/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type RadarChartProps = {
   metrics: RadarMetric[];
   label: string;
 };
 
+type TooltipPayload = {
+  payload?: {
+    metric?: string;
+    value?: number;
+  };
+};
+
+type RadarTooltipProps = {
+  active?: boolean;
+  payload?: TooltipPayload[];
+};
+
+const chartConfig = {
+  value: {
+    label: "Rating",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
+
+function RadarTooltip({ active, payload }: RadarTooltipProps) {
+  const item = payload?.[0]?.payload;
+
+  if (!active || !item) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-2 text-sm shadow-md">
+      <p className="font-medium">{item.metric}</p>
+      <p className="text-muted-foreground">{item.value?.toFixed(0)} / 100</p>
+    </div>
+  );
+}
+
 export function RadarChart({ metrics, label }: RadarChartProps) {
   if (metrics.length === 0) {
     return (
-      <div className="surface rounded-[1.5rem] p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] muted">Radar profile</p>
-            <p className="display-font text-xl font-semibold">{label}</p>
-          </div>
-          <span className="tag">No API data</span>
-        </div>
-        <p className="text-sm leading-6 muted">
-          No radar metrics are available for the current API response.
-        </p>
-      </div>
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardTitle>{label}</CardTitle>
+          <CardDescription>Radar profile</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm leading-6 text-muted-foreground">
+            No radar metrics are available for the current API response.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const size = 280;
-  const center = size / 2;
-  const radius = 88;
-  const levels = [20, 40, 60, 80, 100];
-  const angleStep = (Math.PI * 2) / metrics.length;
-
-  const pointFor = (value: number, index: number) => {
-    const angle = -Math.PI / 2 + angleStep * index;
-    const scaled = (value / 100) * radius;
-    return {
-      x: center + Math.cos(angle) * scaled,
-      y: center + Math.sin(angle) * scaled,
-    };
-  };
-
-  const polygon = metrics
-    .map((metric, index) => {
-      const point = pointFor(metric.value, index);
-      return `${point.x},${point.y}`;
-    })
-    .join(" ");
+  const chartData = metrics.map((metric) => ({
+    metric: metric.label,
+    value: metric.value,
+  }));
 
   return (
-    <div className="surface rounded-[1.5rem] p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] muted">Radar profile</p>
-          <p className="display-font text-xl font-semibold">{label}</p>
-        </div>
-        <span className="tag">6-metric snapshot</span>
-      </div>
-
-      <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-[280px] w-full max-w-[280px]">
-        {levels.map((level) => {
-          const points = metrics
-            .map((_, index) => {
-              const point = pointFor(level, index);
-              return `${point.x},${point.y}`;
-            })
-            .join(" ");
-          return (
-            <polygon
-              key={level}
-              points={points}
-              fill="none"
-              stroke="rgba(24, 48, 39, 0.14)"
-              strokeWidth="1"
+    <Card className="rounded-lg">
+      <CardHeader>
+        <CardTitle>{label}</CardTitle>
+        <CardDescription>Attribute radar</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square w-full max-w-[360px]"
+        >
+          <RechartsRadarChart
+            data={chartData}
+            margin={{ top: 22, right: 52, bottom: 22, left: 52 }}
+          >
+            <ChartTooltip cursor={false} content={<RadarTooltip />} />
+            <PolarGrid gridType="polygon" />
+            <PolarAngleAxis
+              dataKey="metric"
+              tick={{
+                fill: "var(--muted-foreground)",
+                fontSize: 12,
+              }}
             />
-          );
-        })}
-
-        {metrics.map((metric, index) => {
-          const axisPoint = pointFor(100, index);
-          return (
-            <g key={metric.label}>
-              <line
-                x1={center}
-                y1={center}
-                x2={axisPoint.x}
-                y2={axisPoint.y}
-                stroke="rgba(24, 48, 39, 0.18)"
-              />
-              <text
-                x={axisPoint.x}
-                y={axisPoint.y}
-                dx={axisPoint.x > center ? 8 : -8}
-                dy={axisPoint.y > center ? 14 : -6}
-                textAnchor={axisPoint.x > center ? "start" : "end"}
-                className="fill-[var(--muted)] text-[11px]"
-              >
-                {metric.label}
-              </text>
-            </g>
-          );
-        })}
-
-        <polygon
-          points={polygon}
-          fill="rgba(18, 107, 78, 0.24)"
-          stroke="var(--accent)"
-          strokeWidth="2"
-        />
-      </svg>
-    </div>
+            <PolarRadiusAxis
+              angle={90}
+              axisLine={false}
+              domain={[0, 100]}
+              tick={false}
+            />
+            <Radar
+              dataKey="value"
+              dot
+              fill="var(--color-value)"
+              fillOpacity={0.24}
+              stroke="var(--color-value)"
+              strokeWidth={2}
+            />
+          </RechartsRadarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }

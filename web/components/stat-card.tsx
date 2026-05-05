@@ -1,3 +1,10 @@
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 type StatCardProps = {
   label: string;
   value: string;
@@ -6,11 +13,18 @@ type StatCardProps = {
 
 export function StatCard({ label, value, caption }: StatCardProps) {
   return (
-    <article className="surface rounded-[1.5rem] p-5">
-      <p className="text-sm uppercase tracking-[0.2em] muted">{label}</p>
-      <p className="display-font mt-3 text-3xl font-bold">{value}</p>
-      {caption ? <p className="mt-2 text-sm muted">{caption}</p> : null}
-    </article>
+    <Card className="rounded-lg py-4">
+      <CardHeader className="px-4">
+        <CardTitle className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          {label}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2 px-4">
+        <p className="display-font text-3xl font-bold leading-none">{value}</p>
+        {caption ? (
+          <p className="text-sm leading-5 text-muted-foreground">{caption}</p>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
-

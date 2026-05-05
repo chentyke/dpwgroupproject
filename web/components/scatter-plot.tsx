@@ -1,95 +1,137 @@
-import { ScatterPoint } from "@/lib/types";
-import { formatCompactNumber } from "@/lib/format";
+"use client";
+
+import {
+  CartesianGrid,
+  Scatter,
+  ScatterChart as RechartsScatterChart,
+  XAxis,
+  YAxis,
+  ZAxis,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import type { ScatterPoint } from "@/lib/types";
+import { formatCompactNumber, formatCurrency } from "@/lib/format";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type ScatterPlotProps = {
   points: ScatterPoint[];
   title: string;
 };
 
+type ScatterTooltipPayload = {
+  payload?: ScatterPoint;
+};
+
+type ScatterTooltipProps = {
+  active?: boolean;
+  payload?: ScatterTooltipPayload[];
+};
+
+const chartConfig = {
+  players: {
+    label: "Players",
+    color: "var(--chart-1)",
+  },
+  highlight: {
+    label: "Top candidates",
+    color: "var(--chart-4)",
+  },
+} satisfies ChartConfig;
+
+function ScatterTooltip({ active, payload }: ScatterTooltipProps) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-2 text-sm shadow-md">
+      <p className="font-medium">{point.short_name}</p>
+      <div className="mt-1 grid gap-1 text-muted-foreground">
+        <p>Overall: {point.overall}</p>
+        <p>Value: {formatCurrency(point.value_eur)}</p>
+        <p>VfM: {point.vfm_index.toFixed(3)}</p>
+      </div>
+    </div>
+  );
+}
+
 export function ScatterPlot({ points, title }: ScatterPlotProps) {
   if (points.length === 0) {
     return (
-      <div className="surface rounded-[1.5rem] p-5">
-        <p className="display-font text-xl font-semibold">{title}</p>
-        <p className="mt-3 text-sm muted">No points available for the current filter.</p>
-      </div>
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>Overall vs value</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            No points available for the current filter.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const width = 620;
-  const height = 280;
-  const padding = 38;
-  const minOverall = Math.min(...points.map((point) => point.overall));
-  const maxOverall = Math.max(...points.map((point) => point.overall));
-  const minValue = Math.min(...points.map((point) => point.value_eur));
-  const maxValue = Math.max(...points.map((point) => point.value_eur));
-
-  const scaleX = (value: number) =>
-    padding +
-    ((value - minOverall) / Math.max(maxOverall - minOverall, 1)) * (width - padding * 2);
-  const scaleY = (value: number) =>
-    height -
-    padding -
-    ((value - minValue) / Math.max(maxValue - minValue, 1)) * (height - padding * 2);
+  const regularPoints = points.filter((point) => !point.highlight);
+  const highlightedPoints = points.filter((point) => point.highlight);
 
   return (
-    <div className="surface rounded-[1.5rem] p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] muted">Scatter</p>
-          <p className="display-font text-xl font-semibold">{title}</p>
-        </div>
-        <span className="tag">Overall vs value</span>
-      </div>
-
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
-        <line
-          x1={padding}
-          y1={height - padding}
-          x2={width - padding}
-          y2={height - padding}
-          stroke="rgba(24, 48, 39, 0.25)"
-        />
-        <line
-          x1={padding}
-          y1={padding}
-          x2={padding}
-          y2={height - padding}
-          stroke="rgba(24, 48, 39, 0.25)"
-        />
-
-        {points.map((point) => {
-          const x = scaleX(point.overall);
-          const y = scaleY(point.value_eur);
-          return (
-            <g key={point.short_name}>
-              <circle
-                cx={x}
-                cy={y}
-                r={point.highlight ? 6 : 4}
-                fill={point.highlight ? "var(--warning)" : "rgba(18, 107, 78, 0.75)"}
-              />
-              {point.highlight ? (
-                <text x={x + 8} y={y - 8} className="fill-[var(--ink)] text-[11px]">
-                  {point.short_name}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
-
-        <text
-          x={width - padding}
-          y={height - 12}
-          textAnchor="end"
-          className="fill-[var(--muted)] text-[11px]"
-        >
-          Overall rating
-        </text>
-        <text x={padding} y={18} className="fill-[var(--muted)] text-[11px]">
-          {formatCompactNumber(maxValue)} EUR
-        </text>
-      </svg>
-    </div>
+    <Card className="rounded-lg">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>Overall rating vs market value</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[360px] w-full">
+          <RechartsScatterChart margin={{ top: 12, right: 20, bottom: 32, left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="overall"
+              domain={["dataMin", "dataMax"]}
+              name="Overall"
+              tickLine={false}
+              type="number"
+            />
+            <YAxis
+              dataKey="value_eur"
+              name="Value"
+              tickFormatter={formatCompactNumber}
+              tickLine={false}
+              type="number"
+              width={72}
+            />
+            <ZAxis range={[48, 92]} />
+            <ChartTooltip
+              content={<ScatterTooltip />}
+              cursor={{ strokeDasharray: "3 3" }}
+            />
+            <Scatter
+              data={regularPoints}
+              fill="var(--color-players)"
+              fillOpacity={0.62}
+              name="Players"
+            />
+            <Scatter
+              data={highlightedPoints}
+              fill="var(--color-highlight)"
+              fillOpacity={0.92}
+              name="Top candidates"
+            />
+          </RechartsScatterChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }

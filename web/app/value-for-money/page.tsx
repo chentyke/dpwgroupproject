@@ -1,12 +1,28 @@
-import { DataTable } from "@/components/data-table";
 import { PageHeader } from "@/components/page-header";
-import { RadarChart } from "@/components/radar-chart";
 import { ScatterPlot } from "@/components/scatter-plot";
+import { StatCard } from "@/components/stat-card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { VfmCandidatePanel } from "@/components/vfm-candidate-panel";
 import { fetchApi } from "@/lib/api";
 import { fallbackVfm } from "@/lib/fallback-data";
 import { formatCurrency } from "@/lib/format";
+import { SearchIcon } from "lucide-react";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+const positions = ["ST", "LW", "RW", "CAM", "CM", "CDM", "CB", "LB", "RB", "GK"];
 
 export default async function ValueForMoneyPage({
   searchParams,
@@ -31,81 +47,72 @@ export default async function ValueForMoneyPage({
       },
     },
   );
+  const topCandidate = data.candidates[0];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Usage Scenario 2"
         title="Player value-for-money analysis"
-        description="This page locks the API and UX shape for the Moneyball-style analysis proposed in the SDS: a shortlist table, a benchmark radar, and a scatter field that highlights undervalued candidates."
-        aside="The current ranking uses the SDS formula overall / log(value_eur + 1)."
+        description="Find undervalued players by combining overall rating, position fit, market value, and benchmark attribute profiles."
+        aside="VfM index: overall / log(value_eur + 1). Higher scores indicate stronger performance per Euro of market value."
       />
 
-      <section className="surface rounded-[1.75rem] p-6">
-        <form className="grid gap-4 md:grid-cols-[160px_1fr_160px]">
-          <label className="space-y-2">
-            <span className="text-sm font-medium">Position</span>
-            <input
-              name="position"
-              defaultValue={position}
-              className="w-full rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-3"
-            />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium">Max value (EUR)</span>
-            <input
-              name="maxValue"
-              type="number"
-              defaultValue={maxValue}
-              className="w-full rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-3"
-            />
-          </label>
-          <button
-            type="submit"
-            className="self-end rounded-2xl bg-[var(--accent)] px-5 py-3 font-medium text-white"
-          >
-            Refresh
-          </button>
-        </form>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Position" value={data.position || position} />
+        <StatCard label="Candidates" value={String(data.candidates.length)} />
+        <StatCard
+          label="Top VfM"
+          value={topCandidate ? topCandidate.vfm_index.toFixed(3) : "0.000"}
+          caption={topCandidate?.short_name}
+        />
+        <StatCard label="Budget cap" value={formatCurrency(maxValue)} />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="surface rounded-[1.75rem] p-6">
-          <div className="mb-5">
-            <p className="text-sm uppercase tracking-[0.2em] muted">Shortlist</p>
-            <p className="display-font text-2xl font-semibold">
-              Top candidates for {data.position}
-            </p>
-          </div>
-          <DataTable
-            columns={[
-              {
-                key: "player",
-                label: "Player",
-                render: (row) => (
-                  <div>
-                    <p className="font-semibold">{row.short_name}</p>
-                    <p className="text-xs muted">{row.club_name}</p>
-                  </div>
-                ),
-              },
-              { key: "positions", label: "Positions", render: (row) => row.player_positions },
-              { key: "overall", label: "Overall", render: (row) => row.overall },
-              { key: "value", label: "Value", render: (row) => formatCurrency(row.value_eur) },
-              {
-                key: "vfm",
-                label: "VfM",
-                render: (row) => (
-                  <span className="tag">{row.vfm_index.toFixed(3)}</span>
-                ),
-              },
-            ]}
-            rows={data.candidates}
-          />
-        </div>
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardTitle>Shortlist filter</CardTitle>
+          <CardDescription>Position and maximum player value</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-4 md:grid-cols-[180px_1fr_160px]">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="position" className="text-sm font-medium">
+                Position
+              </label>
+              <NativeSelect id="position" name="position" defaultValue={position}>
+                {positions.map((item) => (
+                  <NativeSelectOption key={item} value={item}>
+                    {item}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="maxValue" className="text-sm font-medium">
+                Max value (EUR)
+              </label>
+              <Input
+                id="maxValue"
+                name="maxValue"
+                type="number"
+                defaultValue={maxValue}
+              />
+            </div>
+            <Button type="submit" className="self-end">
+              <SearchIcon data-icon="inline-start" />
+              Apply
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-        <RadarChart metrics={data.benchmark_metrics} label={data.benchmark_name} />
-      </section>
+      <VfmCandidatePanel
+        benchmarkMetrics={data.benchmark_metrics}
+        benchmarkName={data.benchmark_name}
+        candidates={data.candidates}
+        position={data.position}
+      />
 
       <ScatterPlot
         points={data.scatter_points}

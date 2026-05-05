@@ -2,28 +2,44 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  ActivityIcon,
+  BadgeEuroIcon,
+  BarChart3Icon,
+  NetworkIcon,
+  ScaleIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type NavLinkProps = {
   href: string;
   label: string;
 };
 
+const icons = {
+  "/": BarChart3Icon,
+  "/explore": ActivityIcon,
+  "/value-for-money": BadgeEuroIcon,
+  "/fairness": ScaleIcon,
+  "/advanced": NetworkIcon,
+};
+
 export function NavLink({ href, label }: NavLinkProps) {
   const pathname = usePathname();
   const active = pathname === href;
+  const Icon = icons[href as keyof typeof icons] ?? BarChart3Icon;
 
   return (
-    <Link
-      href={href}
-      className={[
-        "rounded-full px-4 py-2 text-sm transition",
-        active
-          ? "bg-[var(--accent)] text-white shadow-lg shadow-emerald-950/10"
-          : "bg-white/40 text-[var(--ink)] hover:bg-white/70",
-      ].join(" ")}
+    <Button
+      asChild
+      variant={active ? "default" : "ghost"}
+      className={cn("w-full justify-start", active ? "" : "text-foreground")}
     >
-      {label}
-    </Link>
+      <Link href={href} aria-current={active ? "page" : undefined}>
+        <Icon data-icon="inline-start" />
+        {label}
+      </Link>
+    </Button>
   );
 }
-
