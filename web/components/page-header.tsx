@@ -1,4 +1,4 @@
-import { Chip } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
 
 type PageHeaderProps = {
   eyebrow: string;
@@ -17,9 +17,9 @@ export function PageHeader({
     <section className="border-b border-border pb-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)] xl:items-end">
         <div className="flex flex-col gap-3">
-          <Chip className="w-fit border border-primary/20 bg-primary/10 text-primary">
+          <Badge className="w-fit border border-primary/20 bg-primary/10 text-primary hover:bg-primary/10">
             {eyebrow}
-          </Chip>
+          </Badge>
           <h1 className="max-w-5xl text-3xl font-semibold tracking-tight md:text-4xl">
             {title}
           </h1>
