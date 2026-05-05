@@ -9,6 +9,7 @@ from app.schemas.advanced import (
 from app.schemas.common import ApiResponse
 from app.services.advanced import build_cluster_response, build_prediction_response
 from app.services.data_repository import get_player_repository
+from app.services.memory import trim_process_memory
 
 router = APIRouter()
 
@@ -16,7 +17,9 @@ router = APIRouter()
 @router.post("/cluster", response_model=ApiResponse[ClusterResponse])
 def post_cluster(payload: ClusterRequest) -> ApiResponse[ClusterResponse]:
     repository = get_player_repository()
-    return ApiResponse(data=build_cluster_response(repository, k=payload.k))
+    response = build_cluster_response(repository, k=payload.k)
+    trim_process_memory()
+    return ApiResponse(data=response)
 
 
 @router.post("/predict", response_model=ApiResponse[PredictionResponse])
@@ -39,4 +42,5 @@ def post_predict(payload: PredictRequest) -> ApiResponse[PredictionResponse]:
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    trim_process_memory()
     return ApiResponse(data=prediction)
