@@ -4,7 +4,6 @@ import { StatCard } from "@/components/stat-card";
 import { fetchApi } from "@/lib/api";
 import { fallbackSummary } from "@/lib/fallback-data";
 import { formatCompactNumber } from "@/lib/format";
-import { DatasetSummary } from "@/lib/types";
 
 const routes = [
   {
@@ -37,10 +36,7 @@ const milestones = [
 ];
 
 export default async function HomePage() {
-  const summary = await fetchApi<DatasetSummary>(
-    "/api/dataset/summary",
-    fallbackSummary,
-  );
+  const summary = await fetchApi("/api/dataset/summary", fallbackSummary);
 
   return (
     <div className="space-y-6">

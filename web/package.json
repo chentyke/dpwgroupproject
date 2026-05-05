@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "generate:types": "openapi-typescript http://127.0.0.1:8000/openapi.json -o lib/generated/api-types.ts"
+    "generate:openapi": "cd .. && ./.venv/bin/python scripts/export_openapi.py web/lib/generated/openapi.json",
+    "generate:types": "npm run generate:openapi && openapi-typescript lib/generated/openapi.json -o lib/generated/api-types.ts"
   },
   "dependencies": {
     "next": "16.2.4",

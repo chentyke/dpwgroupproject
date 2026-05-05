@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/page-header";
 import { postApi } from "@/lib/api";
 import { fallbackCluster, fallbackPrediction } from "@/lib/fallback-data";
 import { formatCurrency } from "@/lib/format";
-import { ClusterResponse, PredictionResponse } from "@/lib/types";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -30,12 +29,12 @@ export default async function AdvancedPage({
   const k = Number(Array.isArray(params.k) ? params.k[0] : params.k ?? "5");
 
   const [cluster, prediction] = await Promise.all([
-    postApi<{ k: number }, ClusterResponse>(
+    postApi(
       "/api/cluster",
       { k },
       fallbackCluster,
     ),
-    postApi<typeof samplePredictionPayload, PredictionResponse>(
+    postApi(
       "/api/predict",
       samplePredictionPayload,
       fallbackPrediction,

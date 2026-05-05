@@ -13,7 +13,8 @@ web-install:
 	cd web && npm install
 
 typegen:
-	cd web && npm run generate:types
+	./.venv/bin/python scripts/export_openapi.py web/lib/generated/openapi.json
+	cd web && npx openapi-typescript lib/generated/openapi.json -o lib/generated/api-types.ts
 
 etl:
 	python -c "from app.services.data_repository import get_player_repository; print(get_player_repository().run_etl())"

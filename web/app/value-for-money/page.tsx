@@ -5,7 +5,6 @@ import { ScatterPlot } from "@/components/scatter-plot";
 import { fetchApi } from "@/lib/api";
 import { fallbackVfm } from "@/lib/fallback-data";
 import { formatCurrency } from "@/lib/format";
-import { VfmResponse } from "@/lib/types";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -22,9 +21,15 @@ export default async function ValueForMoneyPage({
     Array.isArray(params.maxValue) ? params.maxValue[0] : params.maxValue ?? "120000000",
   );
 
-  const data = await fetchApi<VfmResponse>(
-    `/api/vfm?position=${encodeURIComponent(position)}&max_value=${maxValue}`,
+  const data = await fetchApi(
+    "/api/vfm",
     fallbackVfm,
+    {
+      query: {
+        position,
+        max_value: maxValue,
+      },
+    },
   );
 
   return (

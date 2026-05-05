@@ -1,0 +1,1321 @@
+{
+  "components": {
+    "schemas": {
+      "ApiResponse_CleaningReport_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CleaningReport"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[CleaningReport]",
+        "type": "object"
+      },
+      "ApiResponse_ClusterResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClusterResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[ClusterResponse]",
+        "type": "object"
+      },
+      "ApiResponse_DatasetSummary_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DatasetSummary"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[DatasetSummary]",
+        "type": "object"
+      },
+      "ApiResponse_FairnessByLeagueResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FairnessByLeagueResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[FairnessByLeagueResponse]",
+        "type": "object"
+      },
+      "ApiResponse_NationalityHeatmapResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NationalityHeatmapResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[NationalityHeatmapResponse]",
+        "type": "object"
+      },
+      "ApiResponse_PredictionResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PredictionResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[PredictionResponse]",
+        "type": "object"
+      },
+      "ApiResponse_VfmResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VfmResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[VfmResponse]",
+        "type": "object"
+      },
+      "CleaningReport": {
+        "properties": {
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "null_hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/NullHotspot"
+            },
+            "title": "Null Hotspots",
+            "type": "array"
+          },
+          "position_columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Position Columns",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/CleaningStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "tidy_cache_path": {
+            "title": "Tidy Cache Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "tidy_cache_path",
+          "position_columns",
+          "steps",
+          "null_hotspots",
+          "notes"
+        ],
+        "title": "CleaningReport",
+        "type": "object"
+      },
+      "CleaningStep": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "detail",
+          "status"
+        ],
+        "title": "CleaningStep",
+        "type": "object"
+      },
+      "ClusterPoint": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "short_name",
+          "label",
+          "x",
+          "y",
+          "season"
+        ],
+        "title": "ClusterPoint",
+        "type": "object"
+      },
+      "ClusterRequest": {
+        "properties": {
+          "k": {
+            "default": 5,
+            "maximum": 6.0,
+            "minimum": 2.0,
+            "title": "K",
+            "type": "integer"
+          }
+        },
+        "title": "ClusterRequest",
+        "type": "object"
+      },
+      "ClusterResponse": {
+        "properties": {
+          "k": {
+            "title": "K",
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ClusterPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "summaries": {
+            "items": {
+              "$ref": "#/components/schemas/ClusterSummary"
+            },
+            "title": "Summaries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "k",
+          "points",
+          "summaries",
+          "notes"
+        ],
+        "title": "ClusterResponse",
+        "type": "object"
+      },
+      "ClusterSummary": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count",
+          "description"
+        ],
+        "title": "ClusterSummary",
+        "type": "object"
+      },
+      "ColumnProfile": {
+        "properties": {
+          "dtype": {
+            "title": "Dtype",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "null_count": {
+            "title": "Null Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "dtype",
+          "null_count"
+        ],
+        "title": "ColumnProfile",
+        "type": "object"
+      },
+      "DatasetSummary": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnProfile"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "genders": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Genders",
+            "type": "array"
+          },
+          "preview": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Preview",
+            "type": "array"
+          },
+          "seasons": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Seasons",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "total_columns": {
+            "title": "Total Columns",
+            "type": "integer"
+          },
+          "total_rows": {
+            "title": "Total Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "total_rows",
+          "total_columns",
+          "seasons",
+          "genders",
+          "columns",
+          "preview"
+        ],
+        "title": "DatasetSummary",
+        "type": "object"
+      },
+      "FairnessByLeagueResponse": {
+        "properties": {
+          "distributions": {
+            "items": {
+              "$ref": "#/components/schemas/LeagueDistribution"
+            },
+            "title": "Distributions",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "overall_max": {
+            "title": "Overall Max",
+            "type": "integer"
+          },
+          "overall_min": {
+            "title": "Overall Min",
+            "type": "integer"
+          },
+          "test": {
+            "$ref": "#/components/schemas/StatisticalTestSummary"
+          }
+        },
+        "required": [
+          "overall_min",
+          "overall_max",
+          "distributions",
+          "test",
+          "notes"
+        ],
+        "title": "FairnessByLeagueResponse",
+        "type": "object"
+      },
+      "FeatureContribution": {
+        "properties": {
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "feature",
+          "weight"
+        ],
+        "title": "FeatureContribution",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HeatmapCell": {
+        "properties": {
+          "average_wage": {
+            "title": "Average Wage",
+            "type": "integer"
+          },
+          "league_name": {
+            "title": "League Name",
+            "type": "string"
+          },
+          "nationality_name": {
+            "title": "Nationality Name",
+            "type": "string"
+          },
+          "sample_size": {
+            "title": "Sample Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "nationality_name",
+          "league_name",
+          "average_wage",
+          "sample_size"
+        ],
+        "title": "HeatmapCell",
+        "type": "object"
+      },
+      "LeagueDistribution": {
+        "properties": {
+          "average_wage": {
+            "title": "Average Wage",
+            "type": "integer"
+          },
+          "league_name": {
+            "title": "League Name",
+            "type": "string"
+          },
+          "max_wage": {
+            "title": "Max Wage",
+            "type": "integer"
+          },
+          "median_wage": {
+            "title": "Median Wage",
+            "type": "integer"
+          },
+          "min_wage": {
+            "title": "Min Wage",
+            "type": "integer"
+          },
+          "sample_size": {
+            "title": "Sample Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "league_name",
+          "sample_size",
+          "min_wage",
+          "median_wage",
+          "average_wage",
+          "max_wage"
+        ],
+        "title": "LeagueDistribution",
+        "type": "object"
+      },
+      "NationalityHeatmapResponse": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cells",
+          "notes"
+        ],
+        "title": "NationalityHeatmapResponse",
+        "type": "object"
+      },
+      "NullHotspot": {
+        "properties": {
+          "column": {
+            "title": "Column",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "null_rate": {
+            "title": "Null Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "column",
+          "null_rate",
+          "note"
+        ],
+        "title": "NullHotspot",
+        "type": "object"
+      },
+      "PredictRequest": {
+        "properties": {
+          "age": {
+            "maximum": 45.0,
+            "minimum": 15.0,
+            "title": "Age",
+            "type": "integer"
+          },
+          "defending": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defending"
+          },
+          "dribbling": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Dribbling",
+            "type": "integer"
+          },
+          "overall": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Overall",
+            "type": "integer"
+          },
+          "pace": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Pace",
+            "type": "integer"
+          },
+          "passing": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Passing",
+            "type": "integer"
+          },
+          "physic": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Physic"
+          },
+          "potential": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Potential",
+            "type": "integer"
+          },
+          "shooting": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shooting"
+          },
+          "wage_eur": {
+            "minimum": 0.0,
+            "title": "Wage Eur",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "overall",
+          "potential",
+          "age",
+          "wage_eur",
+          "pace",
+          "dribbling",
+          "passing"
+        ],
+        "title": "PredictRequest",
+        "type": "object"
+      },
+      "PredictionResponse": {
+        "properties": {
+          "band": {
+            "title": "Band",
+            "type": "string"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureContribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          },
+          "estimated_value_eur": {
+            "title": "Estimated Value Eur",
+            "type": "integer"
+          },
+          "mae_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mae Eur"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "r2_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "R2 Score"
+          },
+          "residuals": {
+            "items": {
+              "$ref": "#/components/schemas/ResidualPoint"
+            },
+            "title": "Residuals",
+            "type": "array"
+          },
+          "test_rows": {
+            "default": 0,
+            "title": "Test Rows",
+            "type": "integer"
+          },
+          "training_rows": {
+            "default": 0,
+            "title": "Training Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "estimated_value_eur",
+          "band",
+          "contributions",
+          "notes"
+        ],
+        "title": "PredictionResponse",
+        "type": "object"
+      },
+      "RadarMetric": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "RadarMetric",
+        "type": "object"
+      },
+      "ResidualPoint": {
+        "properties": {
+          "predicted_log_value": {
+            "title": "Predicted Log Value",
+            "type": "number"
+          },
+          "residual": {
+            "title": "Residual",
+            "type": "number"
+          }
+        },
+        "required": [
+          "predicted_log_value",
+          "residual"
+        ],
+        "title": "ResidualPoint",
+        "type": "object"
+      },
+      "ScatterPoint": {
+        "properties": {
+          "highlight": {
+            "title": "Highlight",
+            "type": "boolean"
+          },
+          "overall": {
+            "title": "Overall",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "value_eur": {
+            "title": "Value Eur",
+            "type": "integer"
+          },
+          "vfm_index": {
+            "title": "Vfm Index",
+            "type": "number"
+          }
+        },
+        "required": [
+          "short_name",
+          "overall",
+          "value_eur",
+          "vfm_index",
+          "highlight"
+        ],
+        "title": "ScatterPoint",
+        "type": "object"
+      },
+      "StatisticalTestSummary": {
+        "properties": {
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "p_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Value"
+          },
+          "statistic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statistic"
+          }
+        },
+        "required": [
+          "method",
+          "statistic",
+          "p_value",
+          "note"
+        ],
+        "title": "StatisticalTestSummary",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VfmCandidate": {
+        "properties": {
+          "club_name": {
+            "title": "Club Name",
+            "type": "string"
+          },
+          "league_name": {
+            "title": "League Name",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/RadarMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "nationality_name": {
+            "title": "Nationality Name",
+            "type": "string"
+          },
+          "overall": {
+            "title": "Overall",
+            "type": "integer"
+          },
+          "player_positions": {
+            "title": "Player Positions",
+            "type": "string"
+          },
+          "potential": {
+            "title": "Potential",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "value_eur": {
+            "title": "Value Eur",
+            "type": "integer"
+          },
+          "vfm_index": {
+            "title": "Vfm Index",
+            "type": "number"
+          },
+          "wage_eur": {
+            "title": "Wage Eur",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "short_name",
+          "club_name",
+          "league_name",
+          "nationality_name",
+          "value_eur",
+          "wage_eur",
+          "overall",
+          "potential",
+          "player_positions",
+          "vfm_index",
+          "metrics"
+        ],
+        "title": "VfmCandidate",
+        "type": "object"
+      },
+      "VfmResponse": {
+        "properties": {
+          "benchmark_metrics": {
+            "items": {
+              "$ref": "#/components/schemas/RadarMetric"
+            },
+            "title": "Benchmark Metrics",
+            "type": "array"
+          },
+          "benchmark_name": {
+            "title": "Benchmark Name",
+            "type": "string"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/VfmCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "max_value": {
+            "title": "Max Value",
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "position": {
+            "title": "Position",
+            "type": "string"
+          },
+          "scatter_points": {
+            "items": {
+              "$ref": "#/components/schemas/ScatterPoint"
+            },
+            "title": "Scatter Points",
+            "type": "array"
+          }
+        },
+        "required": [
+          "position",
+          "max_value",
+          "benchmark_name",
+          "benchmark_metrics",
+          "candidates",
+          "scatter_points",
+          "notes"
+        ],
+        "title": "VfmResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "FastAPI backend for the Software Development Workshop II FIFA Player Data Analysis System.",
+    "title": "FIFA Player Data Analysis API",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/cluster": {
+      "post": {
+        "operationId": "post_cluster_api_cluster_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClusterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_ClusterResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Cluster",
+        "tags": [
+          "advanced"
+        ]
+      }
+    },
+    "/api/dataset/cleaning-report": {
+      "get": {
+        "operationId": "get_cleaning_report_api_dataset_cleaning_report_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_CleaningReport_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cleaning Report",
+        "tags": [
+          "dataset"
+        ]
+      }
+    },
+    "/api/dataset/summary": {
+      "get": {
+        "operationId": "get_dataset_summary_api_dataset_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_DatasetSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Dataset Summary",
+        "tags": [
+          "dataset"
+        ]
+      }
+    },
+    "/api/fairness/nationality-heatmap": {
+      "get": {
+        "operationId": "get_nationality_heatmap_api_fairness_nationality_heatmap_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_NationalityHeatmapResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Nationality Heatmap",
+        "tags": [
+          "fairness"
+        ]
+      }
+    },
+    "/api/fairness/wages-by-league": {
+      "get": {
+        "operationId": "get_wages_by_league_api_fairness_wages_by_league_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "overall_min",
+            "required": false,
+            "schema": {
+              "default": 80,
+              "maximum": 99,
+              "minimum": 1,
+              "title": "Overall Min",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "overall_max",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 99,
+              "minimum": 1,
+              "title": "Overall Max",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_FairnessByLeagueResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Wages By League",
+        "tags": [
+          "fairness"
+        ]
+      }
+    },
+    "/api/predict": {
+      "post": {
+        "operationId": "post_predict_api_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PredictionResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Predict",
+        "tags": [
+          "advanced"
+        ]
+      }
+    },
+    "/api/vfm": {
+      "get": {
+        "operationId": "get_vfm_api_vfm_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "position",
+            "required": false,
+            "schema": {
+              "default": "CAM",
+              "maxLength": 5,
+              "minLength": 2,
+              "title": "Position",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_value",
+            "required": false,
+            "schema": {
+              "default": 120000000,
+              "minimum": 100000,
+              "title": "Max Value",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_VfmResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Vfm",
+        "tags": [
+          "value-for-money"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "healthcheck_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Healthcheck Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthcheck"
+      }
+    }
+  }
+}

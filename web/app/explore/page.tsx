@@ -4,12 +4,11 @@ import { StatCard } from "@/components/stat-card";
 import { fetchApi } from "@/lib/api";
 import { fallbackCleaningReport, fallbackSummary } from "@/lib/fallback-data";
 import { formatCompactNumber } from "@/lib/format";
-import { CleaningReport, DatasetSummary } from "@/lib/types";
 
 export default async function ExplorePage() {
   const [summary, report] = await Promise.all([
-    fetchApi<DatasetSummary>("/api/dataset/summary", fallbackSummary),
-    fetchApi<CleaningReport>(
+    fetchApi("/api/dataset/summary", fallbackSummary),
+    fetchApi(
       "/api/dataset/cleaning-report",
       fallbackCleaningReport,
     ),
@@ -41,7 +40,7 @@ export default async function ExplorePage() {
             columns={Object.keys(summary.preview[0] ?? {}).map((key) => ({
               key,
               label: key,
-              render: (row: Record<string, string | number | null>) =>
+              render: (row: Record<string, unknown>) =>
                 String(row[key] ?? "null"),
             }))}
             rows={summary.preview}

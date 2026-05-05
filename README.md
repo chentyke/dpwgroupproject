@@ -64,7 +64,8 @@ The web app will be available at `http://127.0.0.1:3000`.
 
 ### 3. Generate frontend API types
 
-After the backend is running:
+The type generation step exports the OpenAPI schema directly from the FastAPI app;
+the backend server does not need to be running.
 
 ```bash
 cd web

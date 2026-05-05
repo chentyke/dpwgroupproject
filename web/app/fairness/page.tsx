@@ -3,7 +3,6 @@ import { Heatmap } from "@/components/heatmap";
 import { PageHeader } from "@/components/page-header";
 import { fetchApi } from "@/lib/api";
 import { fallbackFairness, fallbackHeatmap } from "@/lib/fallback-data";
-import { FairnessByLeagueResponse, NationalityHeatmapResponse } from "@/lib/types";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -25,11 +24,17 @@ export default async function FairnessPage({
   );
 
   const [fairness, heatmap] = await Promise.all([
-    fetchApi<FairnessByLeagueResponse>(
-      `/api/fairness/wages-by-league?overall_min=${overallMin}&overall_max=${overallMax}`,
+    fetchApi(
+      "/api/fairness/wages-by-league",
       fallbackFairness,
+      {
+        query: {
+          overall_min: overallMin,
+          overall_max: overallMax,
+        },
+      },
     ),
-    fetchApi<NationalityHeatmapResponse>(
+    fetchApi(
       "/api/fairness/nationality-heatmap",
       fallbackHeatmap,
     ),
