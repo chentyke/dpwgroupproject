@@ -16,12 +16,18 @@ from app.services.data_repository import PlayerRepository
 
 SIGNIFICANCE_LEVEL = 0.05
 MAX_SIGNIFICANT_PAIRS = 3
+FAIRNESS_COLUMNS = (
+    "overall",
+    "wage_eur",
+    "league_name",
+    "nationality_name",
+)
 
 
 def build_fairness_by_league(
     repository: PlayerRepository, overall_min: int = 80, overall_max: int = 90
 ) -> FairnessByLeagueResponse:
-    players = repository.load_players()
+    players = repository.load_player_columns(FAIRNESS_COLUMNS)
     filtered = [
         player
         for player in players
@@ -111,7 +117,7 @@ def build_fairness_by_league(
 
 
 def build_nationality_heatmap(repository: PlayerRepository) -> NationalityHeatmapResponse:
-    players = repository.load_players()
+    players = repository.load_player_columns(FAIRNESS_COLUMNS)
 
     league_counts: Counter[str] = Counter()
     nation_counts: Counter[str] = Counter()

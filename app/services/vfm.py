@@ -23,6 +23,25 @@ GOALKEEPER_METRIC_FIELDS = [
     ("Speed", "goalkeeping_speed"),
 ]
 
+VFM_COLUMNS = tuple(
+    dict.fromkeys(
+        [
+            "short_name",
+            "club_name",
+            "league_name",
+            "nationality_name",
+            "player_positions",
+            "main_position",
+            "overall",
+            "potential",
+            "value_eur",
+            "wage_eur",
+            *(field for _, field in OUTFIELD_METRIC_FIELDS),
+            *(field for _, field in GOALKEEPER_METRIC_FIELDS),
+        ]
+    )
+)
+
 
 def _vfm_index(overall: int, value_eur: int) -> float:
     safe_value = max(value_eur, 1)
@@ -63,7 +82,7 @@ def _build_metrics(player: dict[str, object]) -> list[RadarMetric]:
 def build_vfm_response(
     repository: PlayerRepository, position: str = "CAM", max_value: int = 120_000_000
 ) -> VfmResponse:
-    players = repository.load_players()
+    players = repository.load_player_columns(VFM_COLUMNS)
     filtered = [
         player
         for player in players

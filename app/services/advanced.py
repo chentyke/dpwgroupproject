@@ -31,6 +31,18 @@ PREDICTION_FEATURES = (
 RIDGE_ALPHA = 10.0
 PREDICTION_RANDOM_STATE = 42
 MIN_PREDICTION_TRAINING_ROWS = 2
+CLUSTER_COLUMNS = (
+    "short_name",
+    "season",
+    "main_position",
+    *CLUSTER_FEATURES,
+)
+PREDICTION_COLUMNS = (
+    "season",
+    "main_position",
+    "value_eur",
+    *PREDICTION_FEATURES,
+)
 
 
 def _has_cluster_features(player: dict[str, object]) -> bool:
@@ -189,7 +201,7 @@ def _profile_from_center(cluster_id: int, center: object) -> dict[str, float]:
 def build_cluster_response(repository: PlayerRepository, k: int = 5) -> ClusterResponse:
     players = [
         player
-        for player in repository.load_players()
+        for player in repository.load_player_columns(CLUSTER_COLUMNS)
         if _is_outfield_latest_season(player)
     ]
     if not players:
@@ -264,7 +276,7 @@ def build_prediction_response(
 ) -> PredictionResponse:
     rows = [
         player
-        for player in repository.load_players()
+        for player in repository.load_player_columns(PREDICTION_COLUMNS)
         if _is_prediction_training_row(player)
     ]
     if len(rows) < MIN_PREDICTION_TRAINING_ROWS:

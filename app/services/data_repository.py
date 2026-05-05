@@ -5,7 +5,7 @@ import json
 import re
 from functools import cached_property, lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from app.core.config import get_settings
 
@@ -141,6 +141,56 @@ class PlayerRepository:
 
     def load_players(self) -> list[dict[str, Any]]:
         return self._players
+
+    def load_player_columns(self, columns: Iterable[str]) -> list[dict[str, Any]]:
+        column_key = tuple(dict.fromkeys(columns))
+        return self._load_player_columns_cached(column_key)
+
+    @lru_cache(maxsize=16)
+    def _load_player_columns_cached(
+        self,
+        columns: tuple[str, ...],
+    ) -> list[dict[str, Any]]:
+        if not columns:
+            return []
+
+        if self.csv_files:
+            frame = self._read_column_frame(columns)
+            return self._frame_to_records(frame)
+
+        return [
+            {column: player.get(column) for column in columns}
+            for player in self._load_sample_players()
+        ]
+
+    def _read_column_frame(self, columns: tuple[str, ...]) -> Any:
+        if self.tidy_cache_path.exists() and self._cache_is_fresh(self.tidy_cache_path):
+            try:
+                import pandas as pd
+                import pyarrow.parquet as pq
+
+                parquet_file = pq.ParquetFile(self.tidy_cache_path)
+                available_columns = set(parquet_file.schema_arrow.names)
+                selected_columns = [
+                    column for column in columns if column in available_columns
+                ]
+                frame = pd.read_parquet(
+                    self.tidy_cache_path,
+                    columns=selected_columns,
+                )
+                for column in columns:
+                    if column not in frame.columns:
+                        frame[column] = None
+                return frame.loc[:, list(columns)]
+            except Exception:
+                pass
+
+        dataframe, _ = self._cleaned_dataset
+        frame = dataframe.copy()
+        for column in columns:
+            if column not in frame.columns:
+                frame[column] = None
+        return frame.loc[:, list(columns)]
 
     def _load_sample_players(self) -> list[dict[str, Any]]:
         with self.sample_path.open("r", encoding="utf-8") as handle:
