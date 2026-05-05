@@ -144,13 +144,9 @@ class PlayerRepository:
 
     def load_player_columns(self, columns: Iterable[str]) -> list[dict[str, Any]]:
         column_key = tuple(dict.fromkeys(columns))
-        return self._load_player_columns_cached(column_key)
+        return self._load_player_columns(column_key)
 
-    @lru_cache(maxsize=16)
-    def _load_player_columns_cached(
-        self,
-        columns: tuple[str, ...],
-    ) -> list[dict[str, Any]]:
+    def _load_player_columns(self, columns: tuple[str, ...]) -> list[dict[str, Any]]:
         if not columns:
             return []
 
