@@ -517,6 +517,13 @@ class PlayerRepository:
 
     def cleaning_report_snapshot(self) -> dict[str, Any]:
         if self.csv_files:
+            report = self._read_cleaning_report()
+            if (
+                report is not None
+                and self.tidy_cache_path.exists()
+                and self._cache_is_fresh(self.tidy_cache_path)
+            ):
+                return report
             _, report = self._cleaned_dataset
             return report
         players = self._load_sample_players()
