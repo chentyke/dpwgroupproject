@@ -10,10 +10,10 @@ from pathlib import Path
 class Settings:
     api_title: str = "FIFA Player Data Analysis API"
     api_description: str = (
-        "Week 1 scaffold for the Software Development Workshop II FIFA "
+        "FastAPI backend for the Software Development Workshop II FIFA "
         "Player Data Analysis System."
     )
-    api_version: str = "0.1.0"
+    api_version: str = "0.2.0"
     api_prefix: str = "/api"
     frontend_origin: str = "http://127.0.0.1:3000"
 

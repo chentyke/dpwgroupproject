@@ -2,6 +2,15 @@ import { ApiEnvelope } from "@/lib/types";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const ALLOW_API_FALLBACK = process.env.NEXT_PUBLIC_ALLOW_API_FALLBACK === "true";
+
+class ApiFetchError extends Error {
+  constructor(path: string, error: unknown) {
+    const detail = error instanceof Error ? error.message : String(error);
+    super(`API request failed for ${path}: ${detail}`);
+    this.name = "ApiFetchError";
+  }
+}
 
 export async function fetchApi<T>(
   path: string,
@@ -24,8 +33,20 @@ export async function fetchApi<T>(
 
     const payload = (await response.json()) as ApiEnvelope<T>;
     return payload.data;
-  } catch {
-    return fallback;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Dynamic server usage")
+    ) {
+      throw error;
+    }
+
+    if (ALLOW_API_FALLBACK) {
+      console.warn(`Using explicit fallback data for ${path}`, error);
+      return fallback;
+    }
+
+    throw new ApiFetchError(path, error);
   }
 }
 
@@ -39,4 +60,3 @@ export async function postApi<TPayload, TResponse>(
     body: JSON.stringify(payload),
   });
 }
-

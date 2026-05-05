@@ -30,7 +30,7 @@ app.include_router(api_router, prefix=settings.api_prefix)
 
 @app.get("/health")
 def healthcheck() -> dict[str, str]:
-    return {"status": "ok", "mode": "scaffold"}
+    return {"status": "ok", "mode": "full-data-backend"}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

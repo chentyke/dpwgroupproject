@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from math import sqrt
+from math import erfc, exp, isfinite, lgamma, log, sqrt
 from statistics import median
 from typing import Any
 
@@ -60,22 +60,24 @@ def build_fairness_by_league(
 
     stat, p_val = None, None
     note = "Insufficient sample groups to perform the Kruskal-Wallis test."
+    engine = "unavailable"
 
     league_wages_lists = list(valid_grouped.values())
 
     if len(league_wages_lists) >= 2:
         stats_module = _load_scipy_stats()
         if stats_module is None:
-            note = (
-                "SciPy is not installed in this environment; install requirements.txt "
-                "to run the Kruskal-Wallis and Dunn tests."
-            )
+            stat, p_val = _kruskal_wallis(league_wages_lists)
+            engine = "pure-python"
         else:
             stat, p_val = stats_module.kruskal(*league_wages_lists)
+            stat = float(stat)
+            p_val = float(p_val)
+            engine = "scipy"
 
         if p_val is not None and p_val < SIGNIFICANCE_LEVEL:
             note = (
-                f"K-W test is significant (p={p_val:.4f}), indicating a "
+                f"K-W test is significant (p={p_val:.4f}, engine={engine}), indicating a "
                 "significant wage disparity."
             )
 
@@ -85,7 +87,7 @@ def build_fairness_by_league(
                     note += f" Significant pairs include: {', '.join(sig_pairs)}."
         elif p_val is not None:
             note = (
-                f"K-W test is not significant (p={p_val:.4f}), no significant "
+                f"K-W test is not significant (p={p_val:.4f}, engine={engine}), no significant "
                 "wage disparity found."
             )
 
@@ -100,7 +102,8 @@ def build_fairness_by_league(
             note=note,
         ),
         notes=[
-            "Kruskal-Wallis is run with scipy.stats.kruskal.",
+            "Kruskal-Wallis uses scipy.stats.kruskal when available and a "
+            "pure-Python chi-square approximation otherwise.",
             "Dunn post-hoc pairs use Bonferroni correction and groups with "
             "fewer than 2 players are excluded from statistical tests.",
         ],
@@ -153,7 +156,8 @@ def build_nationality_heatmap(repository: PlayerRepository) -> NationalityHeatma
     return NationalityHeatmapResponse(
         cells=cells,
         notes=[
-            "Dynamically filtered to Top 10 Leagues and Top 15 Nationalities to avoid sparse matrices.",
+            "Dynamically filtered to Top 10 Leagues and Top 15 Nationalities "
+            "to avoid sparse matrices.",
             "Values represent the average wage in EUR.",
         ],
     )
@@ -162,14 +166,130 @@ def build_nationality_heatmap(repository: PlayerRepository) -> NationalityHeatma
 def _load_scipy_stats() -> Any | None:
     try:
         from scipy import stats
-    except ImportError:
+    except Exception:
         return None
     return stats
 
 
+def _kruskal_wallis(groups: list[list[int]]) -> tuple[float | None, float | None]:
+    valid_groups = [group for group in groups if len(group) > 0]
+    if len(valid_groups) < 2:
+        return None, None
+
+    values: list[float] = []
+    group_labels: list[int] = []
+    for group_id, group in enumerate(valid_groups):
+        values.extend(float(value) for value in group)
+        group_labels.extend([group_id] * len(group))
+
+    total_count = len(values)
+    if total_count <= len(valid_groups):
+        return None, None
+
+    ranks = _rankdata(values)
+    rank_sums: dict[int, float] = defaultdict(float)
+    group_sizes: dict[int, int] = defaultdict(int)
+    for group_id, rank in zip(group_labels, ranks, strict=True):
+        rank_sums[group_id] += rank
+        group_sizes[group_id] += 1
+
+    statistic = (
+        12.0
+        / (total_count * (total_count + 1))
+        * sum((rank_sums[group_id] ** 2) / group_sizes[group_id] for group_id in rank_sums)
+        - 3 * (total_count + 1)
+    )
+
+    tie_counts = Counter(values)
+    tie_correction = 1.0 - (
+        sum(count**3 - count for count in tie_counts.values())
+        / (total_count**3 - total_count)
+    )
+    if tie_correction > 0:
+        statistic /= tie_correction
+
+    p_value = _chi_square_sf(statistic, len(valid_groups) - 1)
+    return statistic, p_value
+
+
+def _rankdata(values: list[float] | list[int]) -> list[float]:
+    sorted_pairs = sorted(enumerate(values), key=lambda item: item[1])
+    ranks = [0.0] * len(values)
+    index = 0
+    while index < len(sorted_pairs):
+        end = index + 1
+        while end < len(sorted_pairs) and sorted_pairs[end][1] == sorted_pairs[index][1]:
+            end += 1
+        average_rank = (index + 1 + end) / 2
+        for original_index, _ in sorted_pairs[index:end]:
+            ranks[original_index] = average_rank
+        index = end
+    return ranks
+
+
+def _chi_square_sf(value: float, degrees_of_freedom: int) -> float | None:
+    if value < 0 or degrees_of_freedom < 1 or not isfinite(value):
+        return None
+    return _regularized_gamma_q(degrees_of_freedom / 2.0, value / 2.0)
+
+
+def _regularized_gamma_q(shape: float, x_value: float) -> float:
+    if x_value < 0 or shape <= 0:
+        return float("nan")
+    if x_value == 0:
+        return 1.0
+    if x_value < shape + 1.0:
+        return max(0.0, min(1.0, 1.0 - _regularized_gamma_p_series(shape, x_value)))
+    return max(0.0, min(1.0, _regularized_gamma_q_fraction(shape, x_value)))
+
+
+def _regularized_gamma_p_series(shape: float, x_value: float) -> float:
+    epsilon = 1e-12
+    term = 1.0 / shape
+    total = term
+    ap_value = shape
+    for _ in range(10_000):
+        ap_value += 1.0
+        term *= x_value / ap_value
+        total += term
+        if abs(term) < abs(total) * epsilon:
+            break
+    return total * exp(-x_value + shape * log(x_value) - lgamma(shape))
+
+
+def _regularized_gamma_q_fraction(shape: float, x_value: float) -> float:
+    epsilon = 1e-12
+    tiny = 1e-300
+    b_value = x_value + 1.0 - shape
+    c_value = 1.0 / tiny
+    d_value = 1.0 / max(b_value, tiny)
+    h_value = d_value
+
+    for index in range(1, 10_000):
+        an_value = -index * (index - shape)
+        b_value += 2.0
+        d_value = an_value * d_value + b_value
+        if abs(d_value) < tiny:
+            d_value = tiny
+        c_value = b_value + an_value / c_value
+        if abs(c_value) < tiny:
+            c_value = tiny
+        d_value = 1.0 / d_value
+        delta = d_value * c_value
+        h_value *= delta
+        if abs(delta - 1.0) < epsilon:
+            break
+
+    return exp(-x_value + shape * log(x_value) - lgamma(shape)) * h_value
+
+
+def _normal_sf(value: float) -> float:
+    return 0.5 * erfc(value / sqrt(2.0))
+
+
 def _dunn_significant_pairs(
     grouped: dict[str, list[int]],
-    stats_module: Any,
+    stats_module: Any | None,
 ) -> list[str]:
     ranked_values: list[int] = []
     league_by_value: list[str] = []
@@ -181,7 +301,11 @@ def _dunn_significant_pairs(
     if total_count < 2:
         return []
 
-    ranks = stats_module.rankdata(ranked_values)
+    ranks = (
+        stats_module.rankdata(ranked_values)
+        if stats_module is not None
+        else _rankdata(ranked_values)
+    )
     tie_counts = Counter(ranked_values)
     tie_term = sum(count**3 - count for count in tie_counts.values())
     variance_base = total_count * (total_count + 1) / 12
@@ -214,7 +338,11 @@ def _dunn_significant_pairs(
                 rank_sums[left] / left_size - rank_sums[right] / right_size
             )
             z_score = mean_rank_diff / denominator
-            raw_p_value = 2 * stats_module.norm.sf(abs(z_score))
+            raw_p_value = (
+                2 * stats_module.norm.sf(abs(z_score))
+                if stats_module is not None
+                else 2 * _normal_sf(abs(z_score))
+            )
             adjusted_p_value = min(raw_p_value * pair_count, 1.0)
             if adjusted_p_value < SIGNIFICANCE_LEVEL:
                 significant_pairs.append(

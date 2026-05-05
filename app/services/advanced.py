@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from math import isfinite
 from typing import Any
 
 from app.schemas.advanced import (
@@ -29,6 +30,7 @@ PREDICTION_FEATURES = (
 )
 RIDGE_ALPHA = 10.0
 PREDICTION_RANDOM_STATE = 42
+MIN_PREDICTION_TRAINING_ROWS = 2
 
 
 def _has_cluster_features(player: dict[str, object]) -> bool:
@@ -265,15 +267,10 @@ def build_prediction_response(
         for player in repository.load_players()
         if _is_prediction_training_row(player)
     ]
-    if len(rows) < 2:
-        return _build_scaffold_prediction_response(
-            overall=overall,
-            potential=potential,
-            age=age,
-            wage_eur=wage_eur,
-            pace=pace,
-            dribbling=dribbling,
-            passing=passing,
+    if len(rows) < MIN_PREDICTION_TRAINING_ROWS:
+        raise ValueError(
+            "Insufficient valid training rows for value prediction. "
+            "Load the FIFA 22 outfield data before calling /api/predict."
         )
 
     model = _run_value_prediction_model(rows)
@@ -480,8 +477,8 @@ def _package_value_model_result(
         "feature_scales": feature_scales,
         "coefficients": coefficients,
         "intercept": intercept,
-        "r2_score": round(float(r2_score_value), 3),
-        "mae_eur": round(float(mae_eur_value), 2),
+        "r2_score": _round_finite(r2_score_value, 3),
+        "mae_eur": _round_finite(mae_eur_value, 2),
         "feature_importance": [
             FeatureContribution(feature=feature, weight=round(float(weight), 3))
             for feature, weight in sorted_importance
@@ -496,6 +493,10 @@ def _package_value_model_result(
         "training_rows": training_rows,
         "test_rows": test_rows,
     }
+
+
+def _round_finite(value: float, digits: int) -> float | None:
+    return round(float(value), digits) if isfinite(float(value)) else None
 
 
 def _predict_log_value(model: dict[str, Any], values: dict[str, int | None]) -> float:
@@ -528,42 +529,3 @@ def _expm1_values(values: Any) -> Any:
     import numpy as np
 
     return np.expm1(values)
-
-
-def _build_scaffold_prediction_response(
-    *,
-    overall: int,
-    potential: int,
-    age: int,
-    wage_eur: int,
-    pace: int,
-    dribbling: int,
-    passing: int,
-) -> PredictionResponse:
-    weighted_score = (
-        overall * 0.35
-        + potential * 0.25
-        + pace * 0.1
-        + dribbling * 0.15
-        + passing * 0.15
-    )
-    age_penalty = max(age - 24, 0) * 0.8
-    estimated_value = int(
-        max((weighted_score - age_penalty) * 1_100_000 + wage_eur * 18, 500_000)
-    )
-
-    return PredictionResponse(
-        estimated_value_eur=estimated_value,
-        band="scaffold-estimate",
-        contributions=[
-            FeatureContribution(feature="overall", weight=0.35),
-            FeatureContribution(feature="potential", weight=0.25),
-            FeatureContribution(feature="dribbling", weight=0.15),
-            FeatureContribution(feature="passing", weight=0.15),
-            FeatureContribution(feature="pace", weight=0.1),
-        ],
-        notes=[
-            "Insufficient valid training rows were available for the Ridge model.",
-            "This response falls back to the deterministic scaffold heuristic.",
-        ],
-    )

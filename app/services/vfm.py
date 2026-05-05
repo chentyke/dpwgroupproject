@@ -111,7 +111,7 @@ def build_vfm_response(
             ),
             metrics=_build_metrics(player),
         )
-        for player in ranked[:5]
+        for player in ranked[:20]
     ]
 
     scatter_points = [

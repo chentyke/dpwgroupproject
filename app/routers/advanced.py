@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.advanced import (
     ClusterRequest,
@@ -22,8 +22,8 @@ def post_cluster(payload: ClusterRequest) -> ApiResponse[ClusterResponse]:
 @router.post("/predict", response_model=ApiResponse[PredictionResponse])
 def post_predict(payload: PredictRequest) -> ApiResponse[PredictionResponse]:
     repository = get_player_repository()
-    return ApiResponse(
-        data=build_prediction_response(
+    try:
+        prediction = build_prediction_response(
             repository,
             overall=payload.overall,
             potential=payload.potential,
@@ -36,4 +36,7 @@ def post_predict(payload: PredictRequest) -> ApiResponse[PredictionResponse]:
             defending=payload.defending,
             physic=payload.physic,
         )
-    )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return ApiResponse(data=prediction)

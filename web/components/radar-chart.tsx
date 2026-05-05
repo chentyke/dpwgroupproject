@@ -6,6 +6,23 @@ type RadarChartProps = {
 };
 
 export function RadarChart({ metrics, label }: RadarChartProps) {
+  if (metrics.length === 0) {
+    return (
+      <div className="surface rounded-[1.5rem] p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] muted">Radar profile</p>
+            <p className="display-font text-xl font-semibold">{label}</p>
+          </div>
+          <span className="tag">No API data</span>
+        </div>
+        <p className="text-sm leading-6 muted">
+          No radar metrics are available for the current API response.
+        </p>
+      </div>
+    );
+  }
+
   const size = 280;
   const center = size / 2;
   const radius = 88;
@@ -92,4 +109,3 @@ export function RadarChart({ metrics, label }: RadarChartProps) {
     </div>
   );
 }
-

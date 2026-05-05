@@ -2,12 +2,43 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Any
 
 from app.core.config import get_settings
 
+POSITION_COLUMNS = [
+    "ls",
+    "st",
+    "rs",
+    "lw",
+    "lf",
+    "cf",
+    "rf",
+    "rw",
+    "lam",
+    "cam",
+    "ram",
+    "lm",
+    "lcm",
+    "cm",
+    "rcm",
+    "rm",
+    "lwb",
+    "ldm",
+    "cdm",
+    "rdm",
+    "rwb",
+    "lb",
+    "lcb",
+    "cb",
+    "rcb",
+    "rb",
+    "gk",
+]
+POSITION_RATING_PATTERN = re.compile(r"^\s*(?P<base>\d+)(?P<modifier>[+-]\d+)?\s*$")
 INT_FIELDS = {
     "sofifa_id",
     "overall",
@@ -37,37 +68,42 @@ INT_FIELDS = {
     "goalkeeping_positioning",
     "goalkeeping_reflexes",
     "goalkeeping_speed",
+    "attacking_crossing",
+    "attacking_finishing",
+    "attacking_heading_accuracy",
+    "attacking_short_passing",
+    "attacking_volleys",
+    "skill_dribbling",
+    "skill_curve",
+    "skill_fk_accuracy",
+    "skill_long_passing",
+    "skill_ball_control",
+    "movement_acceleration",
+    "movement_sprint_speed",
+    "movement_agility",
+    "movement_reactions",
+    "movement_balance",
+    "power_shot_power",
+    "power_jumping",
+    "power_stamina",
+    "power_strength",
+    "power_long_shots",
+    "mentality_aggression",
+    "mentality_interceptions",
+    "mentality_positioning",
+    "mentality_vision",
+    "mentality_penalties",
+    "mentality_composure",
+    "defending_marking_awareness",
+    "defending_standing_tackle",
+    "defending_sliding_tackle",
 }
 FLOAT_TO_INT_FIELDS = {
     "value_eur",
     "wage_eur",
     "release_clause_eur",
 }
-PROJECT_FIELDS = {
-    "sofifa_id",
-    "short_name",
-    "club_name",
-    "league_name",
-    "nationality_name",
-    "player_positions",
-    "overall",
-    "potential",
-    "value_eur",
-    "wage_eur",
-    "age",
-    "pace",
-    "shooting",
-    "passing",
-    "dribbling",
-    "defending",
-    "physic",
-    "goalkeeping_diving",
-    "goalkeeping_handling",
-    "goalkeeping_kicking",
-    "goalkeeping_positioning",
-    "goalkeeping_reflexes",
-    "goalkeeping_speed",
-}
+DATE_FIELDS = {"dob", "club_joined"}
 PREVIEW_FIELDS = [
     "sofifa_id",
     "short_name",
@@ -82,9 +118,15 @@ PREVIEW_FIELDS = [
 
 
 class PlayerRepository:
-    def __init__(self, raw_data_dir: Path, sample_path: Path) -> None:
+    def __init__(
+        self,
+        raw_data_dir: Path,
+        sample_path: Path,
+        tidy_cache_path: Path | None = None,
+    ) -> None:
         self.raw_data_dir = raw_data_dir
         self.sample_path = sample_path
+        self.tidy_cache_path = tidy_cache_path or get_settings().tidy_cache_path
 
     @cached_property
     def csv_files(self) -> list[Path]:
@@ -93,7 +135,8 @@ class PlayerRepository:
     @cached_property
     def _players(self) -> list[dict[str, Any]]:
         if self.csv_files:
-            return self._load_csv_players()
+            dataframe, _ = self._cleaned_dataset
+            return self._frame_to_records(dataframe)
         return self._load_sample_players()
 
     def load_players(self) -> list[dict[str, Any]]:
@@ -103,26 +146,227 @@ class PlayerRepository:
         with self.sample_path.open("r", encoding="utf-8") as handle:
             return json.load(handle)
 
-    def _load_csv_players(self) -> list[dict[str, Any]]:
-        players: list[dict[str, Any]] = []
+    @cached_property
+    def _cleaned_dataset(self) -> tuple[Any, dict[str, Any]]:
+        import pandas as pd
+
+        cached_frame = self._read_tidy_cache()
+        if cached_frame is not None:
+            report = self._read_cleaning_report()
+            if report is None:
+                report = self._build_report_from_frame(
+                    cached_frame,
+                    parquet_written=True,
+                    cache_status="read existing tidy cache",
+                )
+            return cached_frame, report
+
+        raw_frame = self._read_raw_csv_frame(pd)
+        cleaned_frame, report = self._clean_frame(raw_frame)
+        parquet_written, parquet_note = self._write_tidy_cache(cleaned_frame)
+        report["cache"] = {
+            "path": str(self.tidy_cache_path),
+            "written": parquet_written,
+            "note": parquet_note,
+        }
+        self._write_processing_artifacts(cleaned_frame, report)
+        return cleaned_frame, report
+
+    def _read_raw_csv_frame(self, pd: Any) -> Any:
+        frames = []
         for path in self.csv_files:
-            gender = "female" if path.name.startswith("female_") else "male"
-            season = int(path.stem.split("_")[-1])
+            frame = pd.read_csv(path, encoding="utf-8-sig", low_memory=False)
+            frame["season"] = int(path.stem.split("_")[-1])
+            frame["gender"] = "female" if path.name.startswith("female_") else "male"
+            frame["source_file"] = path.name
+            frames.append(frame)
+        return pd.concat(frames, ignore_index=True)
+
+    def _clean_frame(self, raw_frame: Any) -> tuple[Any, dict[str, Any]]:
+        import pandas as pd
+
+        frame = raw_frame.copy()
+        missing_before = self._missing_counts(frame)
+        rows_before = int(frame.shape[0])
+        columns_before = int(frame.shape[1])
+
+        if "player_positions" in frame.columns:
+            frame["main_position"] = (
+                frame["player_positions"].astype("string").str.split(",").str[0].str.strip()
+            )
+
+        coercion_counts: dict[str, int] = {}
+        numeric_fields = (INT_FIELDS | FLOAT_TO_INT_FIELDS) & set(frame.columns)
+        for field in sorted(numeric_fields):
+            before_invalid = frame[field].notna() & pd.to_numeric(
+                frame[field], errors="coerce"
+            ).isna()
+            coerced = pd.to_numeric(frame[field], errors="coerce")
+            if field in INT_FIELDS or field in FLOAT_TO_INT_FIELDS:
+                coerced = coerced.round().astype("Int64")
+            frame[field] = coerced
+            coercion_counts[field] = int(before_invalid.sum())
+
+        for field in sorted(DATE_FIELDS & set(frame.columns)):
+            frame[field] = pd.to_datetime(frame[field], errors="coerce").dt.date
+
+        parsed_position_columns = []
+        for position in POSITION_COLUMNS:
+            if position not in frame.columns:
+                continue
+            extracted = frame[position].astype("string").str.extract(POSITION_RATING_PATTERN)
+            base = pd.to_numeric(extracted["base"], errors="coerce").astype("Int64")
+            modifier = pd.to_numeric(
+                extracted["modifier"].fillna("0"), errors="coerce"
+            ).astype("Int64")
+            modifier = modifier.where(base.notna())
+            frame[f"{position}_base_rating"] = base
+            frame[f"{position}_modifier"] = modifier
+            frame[f"{position}_effective"] = (base + modifier).astype("Int64")
+            parsed_position_columns.append(position)
+
+        duplicate_subset = [
+            field
+            for field in ("season", "gender", "sofifa_id")
+            if field in frame.columns
+        ]
+        duplicates_removed = 0
+        if len(duplicate_subset) == 3:
+            duplicates_removed = int(frame.duplicated(subset=duplicate_subset).sum())
+            if duplicates_removed:
+                frame = frame.drop_duplicates(subset=duplicate_subset, keep="first")
+
+        missing_after = self._missing_counts(frame)
+        report = {
+            "source": self.source_name(),
+            "rows_before": rows_before,
+            "rows_after": int(frame.shape[0]),
+            "columns_before": columns_before,
+            "columns_after": int(frame.shape[1]),
+            "duplicates_removed": duplicates_removed,
+            "missing_before": missing_before,
+            "missing_after": missing_after,
+            "numeric_coercion_failures": coercion_counts,
+            "position_columns_parsed": parsed_position_columns,
+            "final_shape": [int(frame.shape[0]), int(frame.shape[1])],
+        }
+        return frame, report
+
+    def _read_tidy_cache(self) -> Any | None:
+        cache_path = self.tidy_cache_path
+        if not cache_path.exists() or not self._cache_is_fresh(cache_path):
+            return None
+        try:
+            import pandas as pd
+
+            frame = pd.read_parquet(cache_path)
+        except Exception:
+            return None
+        required_columns = {"season", "gender", "sofifa_id", "main_position", "source_file"}
+        required_columns.update({f"{position}_base_rating" for position in POSITION_COLUMNS})
+        if not required_columns.issubset(set(frame.columns)):
+            return None
+        cached_sources = {str(item) for item in frame["source_file"].dropna().unique()}
+        expected_sources = {path.name for path in self.csv_files}
+        if cached_sources != expected_sources:
+            return None
+        report = self._read_cleaning_report()
+        if report is not None:
+            if int(report.get("rows_after", -1)) != int(frame.shape[0]):
+                return None
+            if int(report.get("rows_before", -1)) != self._raw_row_count():
+                return None
+        return frame
+
+    def _raw_row_count(self) -> int:
+        total = 0
+        for path in self.csv_files:
             with path.open("r", encoding="utf-8-sig", newline="") as handle:
-                reader = csv.DictReader(handle)
-                for row in reader:
-                    normalized = {
-                        key: self._normalize_value(key, row.get(key))
-                        for key in PROJECT_FIELDS
-                    }
-                    if normalized.get("player_positions"):
-                        normalized["main_position"] = normalized["player_positions"].split(",")[0]
-                    if normalized.get("age") is None:
-                        normalized["age"] = 0
-                    normalized["season"] = season
-                    normalized["gender"] = gender
-                    players.append(normalized)
-        return players
+                total += max(sum(1 for _ in handle) - 1, 0)
+        return total
+
+    def _cache_is_fresh(self, cache_path: Path) -> bool:
+        cache_mtime = cache_path.stat().st_mtime
+        return all(path.stat().st_mtime <= cache_mtime for path in self.csv_files)
+
+    def _write_tidy_cache(self, frame: Any) -> tuple[bool, str]:
+        output_path = self.tidy_cache_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            frame.to_parquet(output_path, index=False)
+        except Exception as exc:
+            if output_path.exists():
+                output_path.unlink()
+            return (
+                False,
+                f"Parquet cache was not written because the parquet engine failed: {exc}",
+            )
+        return True, "Parquet cache written successfully."
+
+    def _write_processing_artifacts(self, frame: Any, report: dict[str, Any]) -> None:
+        self.tidy_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path = self.tidy_cache_path.with_name("cleaning_report.json")
+        summary_path = self.tidy_cache_path.with_name("summary.json")
+        with report_path.open("w", encoding="utf-8") as handle:
+            json.dump(report, handle, indent=4, default=str)
+        summary = {
+            "total_rows": int(frame.shape[0]),
+            "total_columns": int(frame.shape[1]),
+            "seasons": sorted(int(item) for item in frame["season"].dropna().unique()),
+            "genders": sorted(str(item) for item in frame["gender"].dropna().unique()),
+        }
+        with summary_path.open("w", encoding="utf-8") as handle:
+            json.dump(summary, handle, indent=2)
+
+    def _read_cleaning_report(self) -> dict[str, Any] | None:
+        report_path = self.tidy_cache_path.with_name("cleaning_report.json")
+        if not report_path.exists():
+            return None
+        try:
+            with report_path.open("r", encoding="utf-8") as handle:
+                return json.load(handle)
+        except (json.JSONDecodeError, OSError):
+            return None
+
+    def _build_report_from_frame(
+        self,
+        frame: Any,
+        *,
+        parquet_written: bool,
+        cache_status: str,
+    ) -> dict[str, Any]:
+        return {
+            "source": self.source_name(),
+            "rows_before": int(frame.shape[0]),
+            "rows_after": int(frame.shape[0]),
+            "columns_before": int(frame.shape[1]),
+            "columns_after": int(frame.shape[1]),
+            "duplicates_removed": 0,
+            "missing_before": self._missing_counts(frame),
+            "missing_after": self._missing_counts(frame),
+            "numeric_coercion_failures": {},
+            "position_columns_parsed": [
+                position
+                for position in POSITION_COLUMNS
+                if f"{position}_base_rating" in frame.columns
+            ],
+            "final_shape": [int(frame.shape[0]), int(frame.shape[1])],
+            "cache": {
+                "path": str(self.tidy_cache_path),
+                "written": parquet_written,
+                "note": cache_status,
+            },
+        }
+
+    def _missing_counts(self, frame: Any) -> dict[str, int]:
+        return {
+            str(column): int(count)
+            for column, count in frame.isna().sum().items()
+        }
+
+    def _frame_to_records(self, frame: Any) -> list[dict[str, Any]]:
+        object_frame = frame.astype(object).where(frame.notna(), None)
+        return object_frame.to_dict(orient="records")
 
     def _normalize_value(self, key: str, value: str | None) -> Any:
         if value is None:
@@ -133,9 +377,15 @@ class PlayerRepository:
             return None
 
         if key in INT_FIELDS:
-            return int(float(cleaned))
+            try:
+                return int(float(cleaned))
+            except ValueError:
+                return None
         if key in FLOAT_TO_INT_FIELDS:
-            return int(float(cleaned))
+            try:
+                return int(float(cleaned))
+            except ValueError:
+                return None
         return cleaned
 
     def source_name(self) -> str:
@@ -209,42 +459,38 @@ class PlayerRepository:
         return self._summary_snapshot
 
     def run_etl(self) -> dict[str, Any]:
-        import pandas as pd
-
-        settings = get_settings()
-        output_path = settings.tidy_cache_path
-        report_path = output_path.with_name("cleaning_report.json")
-
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        players = self.load_players()
-        df = pd.DataFrame(players)
-
-        report = {
-            "missing_before": {
-                str(column): int(count)
-                for column, count in df.isna().sum().items()
-            },
-            "rows_before": int(df.shape[0]),
-        }
-
-        report["missing_after"] = {
-            str(column): int(count)
-            for column, count in df.isna().sum().items()
-        }
-        report["rows_dropped"] = 0
-        report["final_shape"] = [int(df.shape[0]), int(df.shape[1])]
-
-        df.to_parquet(output_path, index=False)
-
-        with report_path.open("w", encoding="utf-8") as f:
-            json.dump(report, f, indent=4)
+        dataframe, report = self._cleaned_dataset
 
         return {
-            "rows": int(df.shape[0]),
-            "cols": int(df.shape[1]),
-            "output": str(output_path),
-            "report": str(report_path),
+            "rows": int(dataframe.shape[0]),
+            "cols": int(dataframe.shape[1]),
+            "output": str(self.tidy_cache_path),
+            "report": str(self.tidy_cache_path.with_name("cleaning_report.json")),
+            "parquet_written": bool(report.get("cache", {}).get("written")),
+        }
+
+    def cleaning_report_snapshot(self) -> dict[str, Any]:
+        if self.csv_files:
+            _, report = self._cleaned_dataset
+            return report
+        players = self._load_sample_players()
+        return {
+            "source": self.source_name(),
+            "rows_before": len(players),
+            "rows_after": len(players),
+            "columns_before": len(players[0]) if players else 0,
+            "columns_after": len(players[0]) if players else 0,
+            "duplicates_removed": 0,
+            "missing_before": {},
+            "missing_after": {},
+            "numeric_coercion_failures": {},
+            "position_columns_parsed": [],
+            "final_shape": [len(players), len(players[0]) if players else 0],
+            "cache": {
+                "path": str(self.tidy_cache_path),
+                "written": False,
+                "note": "Sample fixture mode does not write a tidy cache.",
+            },
         }
 
 
