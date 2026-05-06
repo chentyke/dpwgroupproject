@@ -33,6 +33,7 @@ type ClusterSeries = {
   label: string;
   color: string;
   data: ClusterPoint[];
+  total: number;
 };
 
 type ClusterTooltipPayload = {
@@ -50,7 +51,22 @@ const PALETTE = [
   "var(--chart-3)",
   "var(--chart-4)",
   "var(--chart-5)",
+  "var(--chart-6)",
 ];
+const MAX_RENDERED_POINTS = 2400;
+const MIN_POINTS_PER_CLUSTER = 48;
+
+function sampleEvenly(points: ClusterPoint[], limit: number) {
+  if (points.length <= limit) {
+    return points;
+  }
+
+  const step = points.length / limit;
+  return Array.from({ length: limit }, (_, index) => {
+    const pointIndex = Math.min(Math.floor(index * step), points.length - 1);
+    return points[pointIndex];
+  });
+}
 
 function ClusterTooltip({ active, payload }: ClusterTooltipProps) {
   const point = payload?.[0]?.payload;
@@ -73,15 +89,26 @@ function ClusterTooltip({ active, payload }: ClusterTooltipProps) {
 }
 
 function buildSeries(points: ClusterPoint[], summaries: ClusterSummary[]) {
-  const sampleEvery = Math.max(Math.ceil(points.length / 1800), 1);
-  const chartPoints = points.filter((_, index) => index % sampleEvery === 0);
+  const totalPoints = Math.max(points.length, 1);
 
-  return summaries.map((summary, index) => ({
-    key: `cluster${index + 1}`,
-    label: summary.label,
-    color: PALETTE[index % PALETTE.length],
-    data: chartPoints.filter((point) => point.label === summary.label),
-  }));
+  return summaries.map((summary, index) => {
+    const clusterPoints = points.filter((point) => point.label === summary.label);
+    const proportionalLimit = Math.round(
+      (MAX_RENDERED_POINTS * clusterPoints.length) / totalPoints,
+    );
+    const sampleLimit = Math.min(
+      clusterPoints.length,
+      Math.max(MIN_POINTS_PER_CLUSTER, proportionalLimit),
+    );
+
+    return {
+      key: `cluster${index + 1}`,
+      label: summary.label,
+      color: PALETTE[index % PALETTE.length],
+      data: sampleEvenly(clusterPoints, sampleLimit),
+      total: clusterPoints.length,
+    };
+  });
 }
 
 function buildChartConfig(series: ClusterSeries[]) {
@@ -115,9 +142,13 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
 
   const series = buildSeries(points, summaries);
   const chartConfig = buildChartConfig(series);
+  const renderedPointCount = series.reduce(
+    (total, item) => total + item.data.length,
+    0,
+  );
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
       <Card className="rounded-lg">
         <CardHeader>
           <CardTitle>K-Means PCA map</CardTitle>
@@ -140,7 +171,7 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
                 type="number"
                 width={56}
               />
-              <ZAxis range={[34, 34]} />
+              <ZAxis range={[36, 72]} />
               <ChartTooltip
                 content={<ClusterTooltip />}
                 cursor={{ strokeDasharray: "3 3" }}
@@ -150,12 +181,17 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
                   data={item.data}
                   fill={`var(--color-${item.key})`}
                   fillOpacity={0.7}
+                  isAnimationActive={false}
                   key={item.key}
                   name={item.label}
                 />
               ))}
             </RechartsScatterChart>
           </ChartContainer>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Rendering a balanced sample of {renderedPointCount.toLocaleString()} from{" "}
+            {points.length.toLocaleString()} mapped players.
+          </p>
         </CardContent>
       </Card>
 
@@ -166,20 +202,33 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3">
-            {summaries.map((summary) => (
-              <article
-                key={summary.label}
-                className="rounded-lg border border-border bg-background p-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold">{summary.label}</p>
-                  <Badge variant="secondary">{summary.count} players</Badge>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {summary.description}
-                </p>
-              </article>
-            ))}
+            {summaries.map((summary, index) => {
+              const matchingSeries = series[index];
+
+              return (
+                <article
+                  key={summary.label}
+                  className="rounded-lg border border-border bg-background p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className="h-3 w-3 shrink-0 rounded-sm"
+                        style={{ backgroundColor: matchingSeries?.color }}
+                      />
+                      <p className="truncate font-semibold">{summary.label}</p>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0">
+                      {matchingSeries?.total ?? summary.count} players
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {summary.description}
+                  </p>
+                </article>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

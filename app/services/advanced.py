@@ -65,14 +65,20 @@ def _cluster_label(profile: dict[str, float]) -> str:
     defending = profile["defending"]
     physic = profile["physic"]
 
-    if defending >= 60 and passing < 50:
+    if defending >= 58 and physic >= 70 and pace < 60:
+        return "Physical Anchors"
+    if defending >= 60 and passing < 52 and shooting < 45:
         return "Traditional Defenders"
     if min(pace, shooting, passing, dribbling, defending, physic) >= 58:
         return "All-Rounders"
     if defending >= 60 and passing >= 55:
         return "Ball-Playing Defenders"
+    if defending >= 55 and shooting < 45:
+        return "Defensive Role Players"
     if pace >= 74 and shooting >= 62:
         return "Pacey Attackers"
+    if defending < 50 and passing >= 58 and dribbling >= 64:
+        return "Technical Attackers"
     if defending < 45 and dribbling >= 58:
         return "Lightweight Attackers"
     if dribbling >= 70 and physic < 65:
