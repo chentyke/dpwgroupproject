@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { fetchApi } from "@/lib/api";
 import { fallbackFairness, fallbackHeatmap } from "@/lib/fallback-data";
+import { formatPValue } from "@/lib/format";
 import { SearchIcon } from "lucide-react";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -91,7 +92,7 @@ export default async function FairnessPage({
         <StatCard label="Leagues" value={String(fairness.distributions.length)} />
         <StatCard
           label="P-value"
-          value={fairness.test.p_value == null ? "n/a" : fairness.test.p_value.toFixed(4)}
+          value={fairness.test.p_value == null ? "n/a" : formatPValue(fairness.test.p_value)}
         />
         <StatCard label="Heatmap cells" value={String(heatmap.cells.length)} />
       </section>
@@ -153,7 +154,7 @@ export default async function FairnessPage({
                   </p>
                 </div>
                 <Badge variant={fairness.test.p_value != null && fairness.test.p_value < 0.05 ? "secondary" : "outline"}>
-                  p = {fairness.test.p_value == null ? "n/a" : fairness.test.p_value.toFixed(4)}
+                  p = {fairness.test.p_value == null ? "n/a" : formatPValue(fairness.test.p_value)}
                 </Badge>
               </div>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">

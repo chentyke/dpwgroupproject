@@ -83,8 +83,8 @@ def build_fairness_by_league(
 
         if p_val is not None and p_val < SIGNIFICANCE_LEVEL:
             note = (
-                f"K-W test is significant (p={p_val:.4f}, engine={engine}), indicating a "
-                "significant wage disparity."
+                f"K-W test is significant (p={_format_p_value(p_val)}, engine={engine}), "
+                "indicating a significant wage disparity."
             )
 
             if len(league_wages_lists) > 2:
@@ -93,8 +93,8 @@ def build_fairness_by_league(
                     note += f" Significant pairs include: {', '.join(sig_pairs)}."
         elif p_val is not None:
             note = (
-                f"K-W test is not significant (p={p_val:.4f}, engine={engine}), no significant "
-                "wage disparity found."
+                f"K-W test is not significant (p={_format_p_value(p_val)}, engine={engine}), "
+                "no significant wage disparity found."
             )
 
     return FairnessByLeagueResponse(
@@ -104,7 +104,7 @@ def build_fairness_by_league(
         test=StatisticalTestSummary(
             method="Kruskal-Wallis H-test & Dunn's Post-hoc",
             statistic=round(stat, 3) if stat is not None else None,
-            p_value=round(p_val, 4) if p_val is not None else None,
+            p_value=float(p_val) if p_val is not None else None,
             note=note,
         ),
         notes=[
@@ -175,6 +175,10 @@ def _load_scipy_stats() -> Any | None:
     except Exception:
         return None
     return stats
+
+
+def _format_p_value(value: float) -> str:
+    return f"{value:.2e}"
 
 
 def _kruskal_wallis(groups: list[list[int]]) -> tuple[float | None, float | None]:
@@ -352,7 +356,10 @@ def _dunn_significant_pairs(
             adjusted_p_value = min(raw_p_value * pair_count, 1.0)
             if adjusted_p_value < SIGNIFICANCE_LEVEL:
                 significant_pairs.append(
-                    (adjusted_p_value, f"{left} vs {right} (p={adjusted_p_value:.4f})")
+                    (
+                        adjusted_p_value,
+                        f"{left} vs {right} (p={_format_p_value(adjusted_p_value)})",
+                    )
                 )
 
     significant_pairs.sort(key=lambda item: item[0])

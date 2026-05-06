@@ -13,3 +13,6 @@ export function formatCurrency(value: number) {
   }).format(value);
 }
 
+export function formatPValue(value: number) {
+  return value.toExponential(2);
+}
