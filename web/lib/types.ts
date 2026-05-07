@@ -25,3 +25,7 @@ export type PredictRequest = components["schemas"]["PredictRequest"];
 export type FeatureContribution = components["schemas"]["FeatureContribution"];
 export type ResidualPoint = components["schemas"]["ResidualPoint"];
 export type PredictionResponse = components["schemas"]["PredictionResponse"];
+export type FutureRiskResponse = components["schemas"]["FutureRiskResponse"];
+export type FutureModelSummary = components["schemas"]["FutureModelSummary"];
+export type FutureRiskExample = components["schemas"]["FutureRiskExample"];
+export type FutureTimeline = components["schemas"]["FutureTimeline"];

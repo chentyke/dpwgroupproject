@@ -13,6 +13,7 @@ from app.services.advanced import build_cluster_response, build_prediction_respo
 from app.services.data_repository import POSITION_COLUMNS, PlayerRepository
 from app.services.dataset import build_cleaning_report, build_dataset_summary
 from app.services.fairness import build_fairness_by_league
+from app.services.injury import build_future_risk_response
 from app.services.vfm import build_vfm_response
 
 
@@ -155,6 +156,96 @@ def _repository(tmp_path: Path) -> PlayerRepository:
     )
 
 
+def _write_injury_fixture(raw_dir: Path) -> None:
+    raw_dir.mkdir()
+    columns = [
+        "sofifa_id",
+        "short_name",
+        "long_name",
+        "player_traits",
+        "age",
+        "overall",
+        "potential",
+        "pace",
+        "defending",
+        "physic",
+        "power_stamina",
+        "mentality_composure",
+    ]
+    players = [
+        ("1", "Alpha", "Injury Prone"),
+        ("2", "Beta", "Solid Player"),
+        ("3", "Gamma", ""),
+        ("4", "Delta", "Injury Prone"),
+        ("5", "Echo", "Solid Player"),
+        ("6", "Foxtrot", ""),
+        ("7", "Golf", "Injury Prone"),
+        ("8", "Hotel", "Solid Player"),
+        ("9", "India", ""),
+        ("10", "Juliet", "Injury Prone"),
+        ("11", "Kilo", "Solid Player"),
+        ("12", "Lima", ""),
+    ]
+
+    by_season: dict[str, list[dict[str, str]]] = {"15": [], "16": []}
+    for index, (sofifa_id, short_name, future_trait) in enumerate(players, start=1):
+        base = 55 + index
+        by_season["15"].append(
+            {
+                "sofifa_id": sofifa_id,
+                "short_name": short_name,
+                "long_name": f"{short_name} Player",
+                "player_traits": "",
+                "age": str(20 + index % 8),
+                "overall": str(base),
+                "potential": str(base + 6),
+                "pace": str(base + 3),
+                "defending": str(base - 2),
+                "physic": str(base + 1),
+                "power_stamina": str(base + 4),
+                "mentality_composure": str(base + 5),
+            }
+        )
+        by_season["16"].append(
+            {
+                "sofifa_id": sofifa_id,
+                "short_name": short_name,
+                "long_name": f"{short_name} Player",
+                "player_traits": future_trait,
+                "age": str(21 + index % 8),
+                "overall": str(base + 1),
+                "potential": str(base + 6),
+                "pace": str(base + 3),
+                "defending": str(base - 1),
+                "physic": str(base + 2),
+                "power_stamina": str(base + 5),
+                "mentality_composure": str(base + 4),
+            }
+        )
+
+    for season, rows in by_season.items():
+        with (raw_dir / f"players_{season}.csv").open(
+            "w",
+            encoding="utf-8",
+            newline="",
+        ) as handle:
+            writer = csv.DictWriter(handle, fieldnames=columns)
+            writer.writeheader()
+            writer.writerows(rows)
+
+
+def _injury_repository(tmp_path: Path) -> PlayerRepository:
+    sample_path = tmp_path / "sample.json"
+    sample_path.write_text(json.dumps([]), encoding="utf-8")
+    raw_dir = tmp_path / "raw_injury"
+    _write_injury_fixture(raw_dir)
+    return PlayerRepository(
+        raw_dir,
+        sample_path,
+        tmp_path / "processed_injury" / "players_tidy.parquet",
+    )
+
+
 def test_dataset_summary_and_cleaning_report_use_real_csv(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
@@ -238,3 +329,22 @@ def test_prediction_does_not_return_heuristic_when_training_data_is_missing(
             defending=51,
             physic=69,
         )
+
+
+def test_future_injury_models_use_grouped_future_labels(tmp_path: Path) -> None:
+    repository = _injury_repository(tmp_path)
+
+    response = build_future_risk_response(repository)
+
+    assert response.total_records == 24
+    assert response.modeling_records == 12
+    assert response.feature_count >= 6
+    assert response.injury_model.positive_records == 4
+    assert response.solid_model.positive_records == 4
+    assert response.injury_model.training_rows > 0
+    assert response.injury_model.test_rows > 0
+    assert response.solid_model.training_rows > 0
+    assert response.solid_model.test_rows > 0
+    assert response.injury_model.train_players + response.injury_model.test_players == 12
+    assert response.injury_model.top_features
+    assert response.solid_model.top_features

@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/injury/future-risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Future Risk */
+        get: operations["get_future_risk_api_injury_future_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/predict": {
         parameters: {
             query?: never;
@@ -194,6 +211,20 @@ export interface components {
              */
             code: string;
             data: components["schemas"]["FairnessByLeagueResponse"];
+            /**
+             * Message
+             * @default Request successful.
+             */
+            message: string;
+        };
+        /** ApiResponse[FutureRiskResponse] */
+        ApiResponse_FutureRiskResponse_: {
+            /**
+             * Code
+             * @default ok
+             */
+            code: string;
+            data: components["schemas"]["FutureRiskResponse"];
             /**
              * Message
              * @default Request successful.
@@ -354,6 +385,151 @@ export interface components {
             /** Weight */
             weight: number;
         };
+        /** FutureModelSummary */
+        FutureModelSummary: {
+            /** Baseline Positive Rate */
+            baseline_positive_rate: number;
+            /** Examples */
+            examples?: components["schemas"]["FutureRiskExample"][];
+            /** High Risk Positive Rate */
+            high_risk_positive_rate?: number | null;
+            /**
+             * High Risk Records
+             * @default 0
+             */
+            high_risk_records: number;
+            /** High Risk Threshold */
+            high_risk_threshold?: number | null;
+            /** Label */
+            label: string;
+            metrics?: components["schemas"]["FutureRiskMetrics"];
+            /** Negative Records */
+            negative_records: number;
+            /** Notes */
+            notes?: string[];
+            /** Positive Records */
+            positive_records: number;
+            /** Target */
+            target: string;
+            /**
+             * Test Players
+             * @default 0
+             */
+            test_players: number;
+            /**
+             * Test Rows
+             * @default 0
+             */
+            test_rows: number;
+            /** Top Features */
+            top_features?: components["schemas"]["FutureRiskFeature"][];
+            /**
+             * Train Players
+             * @default 0
+             */
+            train_players: number;
+            /**
+             * Training Rows
+             * @default 0
+             */
+            training_rows: number;
+        };
+        /** FutureRiskExample */
+        FutureRiskExample: {
+            /** Age */
+            age?: number | null;
+            /** Defending */
+            defending?: number | null;
+            /** Future Label */
+            future_label: number;
+            /** Long Name */
+            long_name?: string | null;
+            /** Overall */
+            overall?: number | null;
+            /** Pace */
+            pace?: number | null;
+            /** Physic */
+            physic?: number | null;
+            /** Potential */
+            potential?: number | null;
+            /** Probability */
+            probability: number;
+            /** Season */
+            season: number;
+            /** Short Name */
+            short_name: string;
+            /** Sofifa Id */
+            sofifa_id: number;
+        };
+        /** FutureRiskFeature */
+        FutureRiskFeature: {
+            /** Feature */
+            feature: string;
+            /** Importance */
+            importance: number;
+        };
+        /** FutureRiskMetrics */
+        FutureRiskMetrics: {
+            /** Accuracy */
+            accuracy?: number | null;
+            /** F1 Score */
+            f1_score?: number | null;
+            /** Precision */
+            precision?: number | null;
+            /** Recall */
+            recall?: number | null;
+        };
+        /** FutureRiskResponse */
+        FutureRiskResponse: {
+            /** Feature Count */
+            feature_count: number;
+            /** Features */
+            features: string[];
+            injury_model: components["schemas"]["FutureModelSummary"];
+            /** Modeling Records */
+            modeling_records: number;
+            /** Notes */
+            notes: string[];
+            /** Player Count */
+            player_count: number;
+            /** Seasons */
+            seasons: number[];
+            solid_model: components["schemas"]["FutureModelSummary"];
+            /** Source */
+            source: string;
+            /** Status Counts */
+            status_counts: components["schemas"]["InjuryStatusCount"][];
+            /** Timelines */
+            timelines?: components["schemas"]["FutureTimeline"][];
+            /** Total Records */
+            total_records: number;
+        };
+        /** FutureTimeline */
+        FutureTimeline: {
+            /** Long Name */
+            long_name?: string | null;
+            /** Points */
+            points: components["schemas"]["FutureTimelinePoint"][];
+            /** Short Name */
+            short_name: string;
+            /** Sofifa Id */
+            sofifa_id: number;
+        };
+        /** FutureTimelinePoint */
+        FutureTimelinePoint: {
+            /** Age */
+            age?: number | null;
+            /** Injury Probability */
+            injury_probability?: number | null;
+            /** Injury Status */
+            injury_status: number;
+            /** Overall */
+            overall?: number | null;
+            /** Season */
+            season: number;
+            /** Solid Probability */
+            solid_probability?: number | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -369,6 +545,15 @@ export interface components {
             nationality_name: string;
             /** Sample Size */
             sample_size: number;
+        };
+        /** InjuryStatusCount */
+        InjuryStatusCount: {
+            /** Label */
+            label: string;
+            /** Records */
+            records: number;
+            /** Status */
+            status: number;
         };
         /** LeagueDistribution */
         LeagueDistribution: {
@@ -670,6 +855,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_future_risk_api_injury_future_risk_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_FutureRiskResponse_"];
                 };
             };
         };

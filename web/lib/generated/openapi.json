@@ -89,6 +89,28 @@
         "title": "ApiResponse[FairnessByLeagueResponse]",
         "type": "object"
       },
+      "ApiResponse_FutureRiskResponse_": {
+        "properties": {
+          "code": {
+            "default": "ok",
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FutureRiskResponse"
+          },
+          "message": {
+            "default": "Request successful.",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[FutureRiskResponse]",
+        "type": "object"
+      },
       "ApiResponse_NationalityHeatmapResponse_": {
         "properties": {
           "code": {
@@ -469,6 +491,467 @@
         "title": "FeatureContribution",
         "type": "object"
       },
+      "FutureModelSummary": {
+        "properties": {
+          "baseline_positive_rate": {
+            "title": "Baseline Positive Rate",
+            "type": "number"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/FutureRiskExample"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "high_risk_positive_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Risk Positive Rate"
+          },
+          "high_risk_records": {
+            "default": 0,
+            "title": "High Risk Records",
+            "type": "integer"
+          },
+          "high_risk_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Risk Threshold"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/FutureRiskMetrics"
+          },
+          "negative_records": {
+            "title": "Negative Records",
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "positive_records": {
+            "title": "Positive Records",
+            "type": "integer"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "test_players": {
+            "default": 0,
+            "title": "Test Players",
+            "type": "integer"
+          },
+          "test_rows": {
+            "default": 0,
+            "title": "Test Rows",
+            "type": "integer"
+          },
+          "top_features": {
+            "items": {
+              "$ref": "#/components/schemas/FutureRiskFeature"
+            },
+            "title": "Top Features",
+            "type": "array"
+          },
+          "train_players": {
+            "default": 0,
+            "title": "Train Players",
+            "type": "integer"
+          },
+          "training_rows": {
+            "default": 0,
+            "title": "Training Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "target",
+          "label",
+          "positive_records",
+          "negative_records",
+          "baseline_positive_rate"
+        ],
+        "title": "FutureModelSummary",
+        "type": "object"
+      },
+      "FutureRiskExample": {
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "defending": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defending"
+          },
+          "future_label": {
+            "title": "Future Label",
+            "type": "integer"
+          },
+          "long_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Long Name"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall"
+          },
+          "pace": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace"
+          },
+          "physic": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Physic"
+          },
+          "potential": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Potential"
+          },
+          "probability": {
+            "title": "Probability",
+            "type": "number"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "sofifa_id": {
+            "title": "Sofifa Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sofifa_id",
+          "short_name",
+          "season",
+          "probability",
+          "future_label"
+        ],
+        "title": "FutureRiskExample",
+        "type": "object"
+      },
+      "FutureRiskFeature": {
+        "properties": {
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          },
+          "importance": {
+            "title": "Importance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "feature",
+          "importance"
+        ],
+        "title": "FutureRiskFeature",
+        "type": "object"
+      },
+      "FutureRiskMetrics": {
+        "properties": {
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy"
+          },
+          "f1_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "F1 Score"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "recall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall"
+          }
+        },
+        "title": "FutureRiskMetrics",
+        "type": "object"
+      },
+      "FutureRiskResponse": {
+        "properties": {
+          "feature_count": {
+            "title": "Feature Count",
+            "type": "integer"
+          },
+          "features": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "injury_model": {
+            "$ref": "#/components/schemas/FutureModelSummary"
+          },
+          "modeling_records": {
+            "title": "Modeling Records",
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "player_count": {
+            "title": "Player Count",
+            "type": "integer"
+          },
+          "seasons": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Seasons",
+            "type": "array"
+          },
+          "solid_model": {
+            "$ref": "#/components/schemas/FutureModelSummary"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status_counts": {
+            "items": {
+              "$ref": "#/components/schemas/InjuryStatusCount"
+            },
+            "title": "Status Counts",
+            "type": "array"
+          },
+          "timelines": {
+            "items": {
+              "$ref": "#/components/schemas/FutureTimeline"
+            },
+            "title": "Timelines",
+            "type": "array"
+          },
+          "total_records": {
+            "title": "Total Records",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "seasons",
+          "player_count",
+          "total_records",
+          "modeling_records",
+          "feature_count",
+          "features",
+          "status_counts",
+          "injury_model",
+          "solid_model",
+          "notes"
+        ],
+        "title": "FutureRiskResponse",
+        "type": "object"
+      },
+      "FutureTimeline": {
+        "properties": {
+          "long_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Long Name"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/FutureTimelinePoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "sofifa_id": {
+            "title": "Sofifa Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sofifa_id",
+          "short_name",
+          "points"
+        ],
+        "title": "FutureTimeline",
+        "type": "object"
+      },
+      "FutureTimelinePoint": {
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "injury_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Injury Probability"
+          },
+          "injury_status": {
+            "title": "Injury Status",
+            "type": "integer"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "solid_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solid Probability"
+          }
+        },
+        "required": [
+          "season",
+          "injury_status"
+        ],
+        "title": "FutureTimelinePoint",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -508,6 +991,29 @@
           "sample_size"
         ],
         "title": "HeatmapCell",
+        "type": "object"
+      },
+      "InjuryStatusCount": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "records": {
+            "title": "Records",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "label",
+          "records"
+        ],
+        "title": "InjuryStatusCount",
         "type": "object"
       },
       "LeagueDistribution": {
@@ -1195,6 +1701,27 @@
         "summary": "Get Wages By League",
         "tags": [
           "fairness"
+        ]
+      }
+    },
+    "/api/injury/future-risk": {
+      "get": {
+        "operationId": "get_future_risk_api_injury_future_risk_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_FutureRiskResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Future Risk",
+        "tags": [
+          "injury"
         ]
       }
     },
