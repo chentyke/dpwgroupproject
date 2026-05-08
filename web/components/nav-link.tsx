@@ -6,6 +6,7 @@ import {
   ActivityIcon,
   BadgeEuroIcon,
   BarChart3Icon,
+  HeartPulseIcon,
   NetworkIcon,
   ScaleIcon,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const icons = {
   "/value-for-money": BadgeEuroIcon,
   "/fairness": ScaleIcon,
   "/advanced": NetworkIcon,
+  "/injury": HeartPulseIcon,
 };
 
 export function NavLink({ href, label }: NavLinkProps) {

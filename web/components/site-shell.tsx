@@ -14,6 +14,7 @@ const navItems = [
   { href: "/value-for-money", label: "Value Index" },
   { href: "/fairness", label: "Wage Fairness" },
   { href: "/advanced", label: "Clusters & Prediction" },
+  { href: "/injury", label: "Injury & Solid" },
 ];
 
 export function SiteShell({ children }: SiteShellProps) {
@@ -46,7 +47,7 @@ export function SiteShell({ children }: SiteShellProps) {
                   Focus
                 </p>
                 <p className="mt-2 leading-6 text-muted-foreground">
-                  Exploration, value discovery, wage fairness, playing-style modelling.
+                  Exploration, value discovery, wage fairness, playing-style and future trait modelling.
                 </p>
               </div>
             </div>
