@@ -148,14 +148,14 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
   );
 
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
-      <Card className="rounded-lg">
-        <CardHeader>
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.24fr)_minmax(360px,0.76fr)]">
+      <Card className="gap-4 rounded-lg py-5">
+        <CardHeader className="px-5">
           <CardTitle>K-Means PCA map</CardTitle>
           <CardDescription>Playing-style clusters in two dimensions</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="aspect-auto h-[420px] w-full">
+        <CardContent className="px-5">
+          <ChartContainer config={chartConfig} className="aspect-auto h-[360px] w-full">
             <RechartsScatterChart margin={{ top: 12, right: 20, bottom: 32, left: 12 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
@@ -188,27 +188,27 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
               ))}
             </RechartsScatterChart>
           </ChartContainer>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground">
             Rendering a balanced sample of {renderedPointCount.toLocaleString()} from{" "}
             {points.length.toLocaleString()} mapped players.
           </p>
         </CardContent>
       </Card>
 
-      <Card className="rounded-lg">
-        <CardHeader>
+      <Card className="gap-4 rounded-lg py-5 xl:max-h-[474px]">
+        <CardHeader className="px-5">
           <CardTitle>Cluster labels</CardTitle>
           <CardDescription>Centroid summaries</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3">
+        <CardContent className="min-h-0 overflow-y-auto px-5 pr-4">
+          <div className="flex flex-col gap-2">
             {summaries.map((summary, index) => {
               const matchingSeries = series[index];
 
               return (
                 <article
                   key={summary.label}
-                  className="rounded-lg border border-border bg-background p-4"
+                  className="rounded-lg border border-border bg-background px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
@@ -217,13 +217,13 @@ export function ClusterPlot({ points, summaries }: ClusterPlotProps) {
                         className="h-3 w-3 shrink-0 rounded-sm"
                         style={{ backgroundColor: matchingSeries?.color }}
                       />
-                      <p className="truncate font-semibold">{summary.label}</p>
+                      <p className="truncate text-sm font-semibold">{summary.label}</p>
                     </div>
                     <Badge variant="secondary" className="shrink-0">
                       {matchingSeries?.total ?? summary.count} players
                     </Badge>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-1 text-xs leading-4 text-muted-foreground">
                     {summary.description}
                   </p>
                 </article>

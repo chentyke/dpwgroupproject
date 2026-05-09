@@ -1,6 +1,6 @@
 import { ClusterPlot } from "@/components/cluster-plot";
-import { DataTable } from "@/components/data-table";
 import { PageHeader } from "@/components/page-header";
+import { ResidualPlot } from "@/components/residual-plot";
 import { StatCard } from "@/components/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ export default async function AdvancedPage({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         eyebrow="Usage Scenario 4"
         title="Advanced analysis"
@@ -76,12 +76,12 @@ export default async function AdvancedPage({
         />
       </section>
 
-      <Card className="rounded-lg">
-        <CardHeader>
+      <Card className="gap-4 rounded-lg py-5">
+        <CardHeader className="px-5">
           <CardTitle>Cluster control</CardTitle>
           <CardDescription>Choose the number of playing-style groups</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5">
           <form className="grid gap-4 md:grid-cols-[1fr_160px]">
             <div className="flex flex-col gap-2">
               <label htmlFor="k" className="text-sm font-medium">
@@ -106,68 +106,62 @@ export default async function AdvancedPage({
 
       <ClusterPlot points={cluster.points} summaries={cluster.summaries} />
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.05fr)]">
-        <Card className="rounded-lg">
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">R2</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {prediction.r2_score?.toFixed(3) ?? "n/a"}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">MAE</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {prediction.mae_eur != null
-                    ? formatCurrency(prediction.mae_eur)
-                    : "n/a"}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Test rows
-                </p>
-                <p className="mt-1 text-lg font-semibold">
-                  {prediction.test_rows ?? 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <section className="grid gap-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border bg-background px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              Test rows
+            </p>
+            <p className="mt-1 text-lg font-semibold">
+              {prediction.test_rows ?? 0}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-background px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">R2</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prediction.r2_score?.toFixed(3) ?? "n/a"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-background px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">MAE</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prediction.mae_eur != null
+                ? formatCurrency(prediction.mae_eur)
+                : "n/a"}
+            </p>
+          </div>
+        </div>
 
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Feature weights</CardTitle>
-            <CardDescription>Model contribution direction and magnitude</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-5 flex flex-col gap-3">
-              {prediction.contributions.slice(0, 6).map((item) => (
-                <div key={item.feature} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{item.feature}</p>
-                    <Badge variant={item.weight >= 0 ? "secondary" : "outline"}>
-                      {item.weight.toFixed(2)}
-                    </Badge>
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.75fr)]">
+          <ResidualPlot residuals={prediction.residuals ?? []} />
+          <Card className="gap-4 rounded-lg py-5">
+            <CardHeader className="px-5">
+              <CardTitle>Feature weights</CardTitle>
+              <CardDescription>Model contribution direction and magnitude</CardDescription>
+            </CardHeader>
+            <CardContent className="px-5">
+              <div className="grid gap-1">
+                {prediction.contributions.map((item) => (
+                  <div
+                    key={item.feature}
+                    className="rounded-md px-2 py-1.5"
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium">{item.feature}</p>
+                      <Badge variant={item.weight >= 0 ? "secondary" : "outline"}>
+                        {item.weight.toFixed(2)}
+                      </Badge>
+                    </div>
+                    <Progress
+                      className="h-1.5"
+                      value={(Math.abs(item.weight) / maxWeight) * 100}
+                    />
                   </div>
-                  <Progress value={(Math.abs(item.weight) / maxWeight) * 100} />
-                </div>
-              ))}
-            </div>
-            <DataTable
-              columns={[
-                { key: "feature", label: "Feature", render: (row) => row.feature },
-                {
-                  key: "weight",
-                  label: "Weight",
-                  render: (row) => <Badge variant="secondary">{row.weight.toFixed(2)}</Badge>,
-                },
-              ]}
-              rows={prediction.contributions}
-            />
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
     </div>
