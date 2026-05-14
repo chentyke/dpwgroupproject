@@ -1,0 +1,13 @@
+{
+  "source_notebook": "outputs/predict_notebook_current_data/predict_current_cleaned_data.ipynb",
+  "filtered_dataset_shape_from_notebook_output": [
+    17041,
+    21
+  ],
+  "r2_score_from_notebook_output": 0.969,
+  "mae_eur_from_notebook_output": 720569.0,
+  "figures": [
+    "outputs/predict_notebook_figures/01_market_value_distribution_comparison_from_notebook.png",
+    "outputs/predict_notebook_figures/02_residuals_feature_importance_from_notebook.png"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "source_notebook": "outputs/predict_notebook_current_data/predict_current_cleaned_data.ipynb",
+  "data_path": "data/processed/players_tidy.parquet",
+  "raw_dataset_shape": [
+    144323,
+    195
+  ],
+  "filtered_dataset_shape": [
+    17081,
+    196
+  ],
+  "training_rows": 13664,
+  "test_rows": 3417,
+  "r2_score": 0.971,
+  "mae_eur": 654442.0,
+  "feature_importance": [
+    {
+      "feature": "overall",
+      "importance": 1.2210322272211263
+    },
+    {
+      "feature": "age",
+      "importance": 0.446880078648627
+    },
+    {
+      "feature": "potential",
+      "importance": 0.0849059943258826
+    },
+    {
+      "feature": "shooting",
+      "importance": 0.029943633883957845
+    },
+    {
+      "feature": "pace",
+      "importance": 0.02145186997601762
+    },
+    {
+      "feature": "defending",
+      "importance": 0.01474451841777792
+    },
+    {
+      "feature": "physic",
+      "importance": 0.006919102981391212
+    },
+    {
+      "feature": "dribbling",
+      "importance": 0.005370814162235549
+    },
+    {
+      "feature": "passing",
+      "importance": 0.0004059646902204834
+    }
+  ],
+  "figures": [
+    "outputs/predict_notebook_current_data/01_market_value_distribution_comparison_current_cleaned_data.png",
+    "outputs/predict_notebook_current_data/02_residuals_feature_importance_current_cleaned_data.png"
+  ]
+}

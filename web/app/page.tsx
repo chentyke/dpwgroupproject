@@ -32,6 +32,11 @@ const routes = [
     detail: "League wage distribution and nationality pay heatmap.",
   },
   {
+    href: "/injury",
+    label: "Injury & Solid Projection",
+    detail: "Future trait risk, feature importance, validation timelines.",
+  },
+  {
     href: "/advanced",
     label: "Advanced Analysis",
     detail: "Playing-style clusters and value prediction report.",
@@ -46,7 +51,7 @@ export default async function HomePage() {
       <PageHeader
         eyebrow="FIFA Analysis"
         title="Player value, wage fairness, and playing-style intelligence"
-        description="Interactive dashboards for the four analysis scenarios defined in the project document: exploration and cleaning, value-for-money ranking, salary fairness testing, and advanced clustering with value prediction."
+        description="Interactive dashboards for the five analysis scenarios defined in the project document: exploration and cleaning, value-for-money ranking, salary fairness testing, future trait projection, and advanced clustering with value prediction."
         aside={`Current sample: ${formatCompactNumber(summary.total_rows)} snapshots, ${summary.total_columns} fields, ${summary.seasons.length} FIFA editions.`}
       />
 
@@ -73,7 +78,7 @@ export default async function HomePage() {
         />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {routes.map((route, index) => (
           <Card key={route.href} className="rounded-lg">
             <CardHeader>

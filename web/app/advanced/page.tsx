@@ -67,13 +67,9 @@ export default async function AdvancedPage({
         aside="Cluster projection uses PCA coordinates; prediction output reports model diagnostics and feature contribution weights."
       />
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2">
         <StatCard label="Clusters" value={String(cluster.k || k)} />
         <StatCard label="Mapped players" value={String(cluster.points.length)} />
-        <StatCard
-          label="R2 score"
-          value={prediction.r2_score == null ? "n/a" : prediction.r2_score.toFixed(3)}
-        />
       </section>
 
       <Card className="gap-4 rounded-lg py-5">

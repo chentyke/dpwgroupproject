@@ -31,6 +31,7 @@ from app.services.fairness import (
     build_fairness_by_league,
     build_nationality_heatmap,
 )
+from app.services.injury import build_future_risk_response
 from app.services.vfm import build_vfm_response
 
 FIG_DPI = 180
@@ -483,6 +484,123 @@ def export_prediction_weights(repository, output_dir: Path) -> Path:
     return save_figure(fig, output_path)
 
 
+def export_injury_future_risk(repository, output_dir: Path) -> Path:
+    response = build_future_risk_response(repository)
+    output_path = output_dir / "07_injury_future_risk_model.png"
+    if not response.injury_model.top_features and not response.solid_model.top_features:
+        return empty_chart("Future injury and solid trait model", output_path)
+
+    fig, (ax_lift, ax_features) = plt.subplots(
+        1,
+        2,
+        figsize=(13.2, 6.2),
+        gridspec_kw={"width_ratios": [0.9, 1.35]},
+    )
+
+    model_labels = ["Future injury", "Future solid"]
+    baseline_rates = [
+        response.injury_model.baseline_positive_rate or 0,
+        response.solid_model.baseline_positive_rate or 0,
+    ]
+    high_risk_rates = [
+        response.injury_model.high_risk_positive_rate or 0,
+        response.solid_model.high_risk_positive_rate or 0,
+    ]
+    x_positions = np.arange(len(model_labels))
+    bar_width = 0.34
+
+    ax_lift.bar(
+        x_positions - bar_width / 2,
+        [value * 100 for value in baseline_rates],
+        width=bar_width,
+        color=SLATE,
+        alpha=0.72,
+        label="Baseline",
+    )
+    ax_lift.bar(
+        x_positions + bar_width / 2,
+        [value * 100 for value in high_risk_rates],
+        width=bar_width,
+        color=ROSE,
+        alpha=0.88,
+        label="Top risk decile",
+    )
+    ax_lift.set_xticks(x_positions)
+    ax_lift.set_xticklabels(model_labels)
+    ax_lift.set_ylabel("Positive outcome rate")
+    ax_lift.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:.0f}%"))
+    ax_lift.set_title(
+        "Holdout lift by model",
+        loc="left",
+        fontsize=14,
+        fontweight="bold",
+        color=TEXT_COLOR,
+    )
+    for x_position, value in zip(x_positions + bar_width / 2, high_risk_rates, strict=True):
+        ax_lift.text(
+            x_position,
+            value * 100 + 0.7,
+            f"{value * 100:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            color=MUTED_COLOR,
+        )
+    ax_lift.legend(frameon=False, fontsize=9, loc="upper left")
+    style_axis(ax_lift, grid_axis="y")
+
+    feature_items = [
+        ("Injury", item.feature, item.importance)
+        for item in response.injury_model.top_features[:5]
+    ] + [
+        ("Solid", item.feature, item.importance)
+        for item in response.solid_model.top_features[:5]
+    ]
+    feature_labels = [
+        f"{feature.replace('_', ' ')} ({model})" for model, feature, _ in feature_items
+    ]
+    feature_values = [importance for _, _, importance in feature_items]
+    feature_colors = [ROSE if model == "Injury" else TEAL for model, _, _ in feature_items]
+    y_positions = np.arange(len(feature_labels))
+
+    ax_features.barh(y_positions, feature_values, color=feature_colors, alpha=0.88)
+    ax_features.set_yticks(y_positions)
+    ax_features.set_yticklabels(feature_labels)
+    ax_features.invert_yaxis()
+    ax_features.set_xlabel("Random forest feature importance")
+    ax_features.set_title(
+        "Top model features",
+        loc="left",
+        fontsize=14,
+        fontweight="bold",
+        color=TEXT_COLOR,
+    )
+    max_value = max(feature_values) if feature_values else 1
+    for index, value in enumerate(feature_values):
+        ax_features.text(
+            value + max_value * 0.025,
+            index,
+            f"{value:.3f}",
+            va="center",
+            fontsize=8,
+            color=MUTED_COLOR,
+        )
+    style_axis(ax_features, grid_axis="x")
+
+    fig.suptitle(
+        f"Future injury/solid modeling: {response.modeling_records:,} records, "
+        f"{response.feature_count} features",
+        x=0.03,
+        y=1.02,
+        ha="left",
+        fontsize=15,
+        fontweight="bold",
+        color=TEXT_COLOR,
+    )
+    fig.tight_layout()
+    return save_figure(fig, output_path)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export the dashboard analysis charts as PNG files.",
@@ -539,6 +657,7 @@ def export_all_charts(args: argparse.Namespace) -> Iterable[Path]:
         export_nationality_heatmap(repository, output_dir),
         export_cluster_scatter(repository, output_dir, args.clusters),
         export_prediction_weights(repository, output_dir),
+        export_injury_future_risk(repository, output_dir),
     ]
 
 

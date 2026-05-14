@@ -4,9 +4,10 @@ FastAPI + Next.js implementation for the `Software Development Workshop II` FIFA
 
 ## What is included
 
+- `FIRST_DRAFT_SUBMISSION.md` and `progress.md` for the 2026-05-13 first draft implementation submission
 - `app/` FastAPI backend with the routes defined in the SDS
 - `web/` Next.js App Router frontend with pages for Explore, Value for Money, Fairness, and Advanced Analysis
-- `data/` raw CSV/XLSX files, generated processed artifacts, and small sample fixtures
+- `data/` raw CSV/XLSX source files, generated processed artifacts, and small sample fixtures
 - `docs/plans/` implementation notes derived from the Notion SDS and meeting records
 - `Makefile`, `.editorconfig`, `.env.example`, and install scripts for a shared team setup
 
@@ -74,8 +75,8 @@ npm run generate:types
 
 ## Data layout
 
-- The raw FIFA CSV/XLSX files live in `data/raw/` and are versioned in this repository.
-- On this machine they were copied from `/Users/yang/Downloads/archive`.
+- The raw FIFA CSV/XLSX source files live in `data/raw/` and are versioned in this repository.
+- The original archive was copied into `data/raw/` before processing.
 - `data/sample/player_snapshots.json` is a committed seed dataset for fallback mode.
 - `data/processed/players_tidy.parquet` is generated from the 15 CSV files and currently contains 144,323 rows and 195 columns after position-rating expansion.
 
