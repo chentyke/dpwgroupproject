@@ -404,6 +404,18 @@ def _merge_probability_frames(model_frame: Any, injury_probs: Any, solid_probs: 
     return probability_frame
 
 
+
+def _timeline_point_from_row(row: Any) -> FutureTimelinePoint:
+    status_value = _safe_int(row.get("injury_status"))
+
+    return FutureTimelinePoint(
+        season=_safe_int(row.get("season_year")) or 0,
+        age=_safe_int(row.get("age")),
+        overall=_safe_int(row.get("overall")),
+        injury_status=status_value if status_value is not None else -1,
+        injury_probability=_safe_float(row.get("injury_probability")),
+        solid_probability=_safe_float(row.get("solid_probability")),
+  )
 def _build_timelines(
     frame: Any,
     probability_frame: Any,
@@ -444,19 +456,14 @@ def _build_timelines(
                 short_name=str(first.get("short_name") or "Unknown"),
                 long_name=_safe_str(first.get("long_name")),
                 points=[
-                    FutureTimelinePoint(
-                        season=_safe_int(row.get("season_year")) or 0,
-                        age=_safe_int(row.get("age")),
-                        overall=_safe_int(row.get("overall")),
-                        injury_status=_safe_int(row.get("injury_status")) or -1,
-                        injury_probability=_safe_float(row.get("injury_probability")),
-                        solid_probability=_safe_float(row.get("solid_probability")),
-                    )
+                    _timeline_point_from_row(row)
                     for _, row in rows.iterrows()
                 ],
             )
         )
     return timelines
+
+
 
 
 def _status_counts(frame: Any) -> list[InjuryStatusCount]:
