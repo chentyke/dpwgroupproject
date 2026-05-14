@@ -13,7 +13,7 @@ from app.services.advanced import build_cluster_response, build_prediction_respo
 from app.services.data_repository import POSITION_COLUMNS, PlayerRepository
 from app.services.dataset import build_cleaning_report, build_dataset_summary
 from app.services.fairness import build_fairness_by_league
-from app.services.injury import build_future_risk_response
+from app.services.injury import _timeline_point_from_row, build_future_risk_response
 from app.services.vfm import build_vfm_response
 
 
@@ -348,3 +348,27 @@ def test_future_injury_models_use_grouped_future_labels(tmp_path: Path) -> None:
     assert response.injury_model.train_players + response.injury_model.test_players == 12
     assert response.injury_model.top_features
     assert response.solid_model.top_features
+
+
+def test_timeline_point_preserves_solid_player_status() -> None:
+    solid_point = _timeline_point_from_row(
+        {
+            "season_year": "2016",
+            "age": "24",
+            "overall": "82",
+            "injury_status": 0,
+            "injury_probability": "0.125",
+            "solid_probability": "0.875",
+        }
+    )
+    unlabeled_point = _timeline_point_from_row(
+        {
+            "season_year": "2016",
+            "injury_status": None,
+        }
+    )
+
+    assert solid_point.injury_status == 0
+    assert solid_point.injury_probability == 0.125
+    assert solid_point.solid_probability == 0.875
+    assert unlabeled_point.injury_status == -1
