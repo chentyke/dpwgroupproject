@@ -168,16 +168,22 @@ The nationality heatmap summarizes average wages for the top 10 leagues and top 
 
 \subsection{Future Injury and Solid Projection}
 
-The injury module studies player trait changes over time. It maps the FIFA \texttt{player\_traits} text into three states: unlabeled (\(-1\)), Solid Player (\(0\)), and Injury Prone (\(1\)). The modeling dataset keeps male FIFA 15-22 records and uses early unlabeled player seasons that have later records. From these rows, the service trains two separate Random Forest classifiers:
+The injury module studies player status transitions over time. It maps the FIFA \texttt{player\_traits} text into three states: unlabeled (\(-1\)), Solid Player (\(0\)), and Injury Prone (\(1\)). Records containing ``injury prone'' are coded as \(1\), records containing ``solid player'' are coded as \(0\), and all other records are treated as unlabeled (\(-1\)). The modeling dataset keeps male FIFA 15-22 records and uses early unlabeled player seasons that have later records. From these rows, the service trains two separate Random Forest classifiers:
 
 \begin{enumerate}
   \item \texttt{future\_injury}: whether a currently unlabeled season later becomes an Injury Prone player record.
   \item \texttt{future\_solid}: whether a currently unlabeled season later becomes a Solid Player record.
 \end{enumerate}
 
+The current injury pipeline focuses on male player records because the future transition task requires sufficient longitudinal player-season data. Although the cleaned dataset may contain female player records, their sample size and follow-up coverage are relatively limited. Since this module needs to track whether an unlabeled player-season later transitions into Injury Prone or Solid Player status, reliable modeling depends on enough repeated yearly records and enough positive transition cases. If female records were directly mixed with male records, the model would still be dominated by the much larger male dataset and would not provide reliable female-specific conclusions. Therefore, female players are excluded from the final model training and validation, and female-player injury/solid projection is left as a future extension when more complete longitudinal data become available.
+
 The current injury pipeline covers 45,629 male players and 142,079 total male records. It uses 90,339 modeling records and 40 numeric features, including age, body measurements, overall, potential, aggregate attributes, technical skills, movement, power, mentality, and defending ratings. Validation uses player-group holdout splitting, so the same player cannot appear in both train and test rows.
 
-For the future injury model, the baseline positive rate is 7.4\%. The top risk decile reaches a 15.1\% positive rate on held-out players, with accuracy 0.727, precision 0.124, recall 0.464, and F1 score 0.195. Important features include mentality composure, potential, heading accuracy, ball control, dribbling, age, and overall. For the future solid model, the baseline positive rate is 4.1\%, while the top risk decile reaches 8.9\%. Its most important features include stamina, defending, physic, interceptions, marking awareness, standing tackle, aggression, sliding tackle, strength, and overall.
+For the future injury model, the baseline positive rate is 7.4\%. The top predicted injury-risk decile reaches a 15.1\% positive rate on held-out players, with accuracy 0.727, precision 0.124, recall 0.464, and F1 score 0.195. Important features include mentality composure, potential, heading accuracy, ball control, dribbling, age, and overall.
+
+For the future solid model, the baseline positive rate is 4.1\%, while the top predicted solid-probability decile reaches 8.9\%. Its most important features include stamina, defending, physic, interceptions, marking awareness, standing tackle, aggression, sliding tackle, strength, and overall.
+
+Because both positive classes are rare, the models are better understood as group-level screening tools rather than exact individual prediction models. The updated timeline output also preserves the three-state injury encoding correctly, so Solid Player status (\(0\)) remains distinct from unlabeled status (\(-1\)) when player histories are displayed in the frontend.
 
 \begin{figure}[H]
 \centering
