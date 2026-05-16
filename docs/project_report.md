@@ -1,5 +1,7 @@
 # FIFA Player Data Analysis System Project Report
 
+Repository: [chentyke/dpwgroupproject](https://github.com/chentyke/dpwgroupproject)
+
 ## Abstract
 
 This project implements a full-stack FIFA player analytics system for the Software Development Workshop II group project. The system combines a FastAPI backend, a Next.js dashboard, a cleaned FIFA 15-22 player archive, and five analysis scenarios: data loading and exploration, player value-for-money ranking, salary fairness analysis, future injury/solid trait projection, and advanced playing-style clustering with market-value prediction. The current backend loads 144,323 player-season snapshots from the local CSV archive, normalizes market and ability fields, expands position-rating strings into analyzable numeric columns, and writes a tidy Parquet cache with 195 cleaned columns. The frontend exposes the project through scenario-specific dashboard pages, while exported PNG charts provide static evidence for reporting. Results show that the data pipeline is stable, the value-for-money module can surface low-cost candidates, league wage distributions differ significantly for high-rated players, the injury module can flag higher-risk held-out player seasons, and FIFA 22 outfield players can be segmented into interpretable playing-style clusters. The report documents the system design, methods, outputs, limitations, and future work.
