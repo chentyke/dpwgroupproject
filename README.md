@@ -4,7 +4,6 @@ FastAPI + Next.js implementation for the `Software Development Workshop II` FIFA
 
 ## What is included
 
-- `FIRST_DRAFT_SUBMISSION.md` and `progress.md` for the 2026-05-13 first draft implementation submission
 - `app/` FastAPI backend with the routes defined in the SDS
 - `web/` Next.js App Router frontend with pages for Explore, Value for Money, Fairness, and Advanced Analysis
 - `data/` raw CSV/XLSX source files, generated processed artifacts, and small sample fixtures
