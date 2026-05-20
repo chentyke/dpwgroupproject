@@ -6,6 +6,7 @@
 __pycache__/
 *.pyc
 
+data/raw/
 data/processed/*
 !data/processed/.gitkeep
 
@@ -14,3 +15,29 @@ web/node_modules/
 web/.env.local
 
 superseded_zips/
+submission_ready_*/
+tmp/
+*.zip
+*.7z
+*.rar
+*.tar
+*.tgz
+*.gz
+*.gzip
+*.bdoc
+*.cdoc
+*.ddoc
+*.gtar
+*.hqx
+*.sit
+
+AGENTS.md
+CLAUDE.md
+*codex*
+*Codex*
+*claude*
+*Claude*
+*cursor*
+*Cursor*
+*copilot*
+*Copilot*
